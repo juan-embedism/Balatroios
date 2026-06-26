@@ -413,6 +413,11 @@ nav button.on{color:var(--gold)}
 }
 @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
 </style>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#143226">
+<meta name="apple-mobile-web-app-title" content="Balatrodex">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
 </head>
 <body>
 
@@ -1601,6 +1606,13 @@ function pgRender(){
 }
 
 buildTopNav();renderChips();renderGrid();renderSyn();renderDecks();renderQuizHome();renderTut();pgRender();
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
 </script>
 </body>
 </html>
