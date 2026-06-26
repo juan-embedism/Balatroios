@@ -1,0 +1,1606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Balatrodex</title>
+<style>
+:root{
+  --felt:#1d4734; --felt-dark:#143226; --ink:#21201d;
+  --card:#f8f3e3; --card-edge:#2b2a26;
+  --chip:#0098ff; --mult:#fe5f55; --gold:#f2c14e;
+  --common:#0093ff; --uncommon:#35bd86; --rare:#ff4c40; --legendary:#aa5ab4;
+  --tarot:#a78bfa; --planet:#5fd3e8; --spectral:#7ec8ff;
+  --text-dim:#bcd4c6;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:-apple-system,"SF Pro Rounded",ui-rounded,"Segoe UI",Roboto,sans-serif;
+  background:
+    radial-gradient(ellipse at 50% -10%, #2c6a4e 0%, var(--felt) 45%, var(--felt-dark) 100%) fixed,
+    var(--felt);
+  color:#f3efe2;
+  padding-bottom:calc(74px + env(safe-area-inset-bottom));
+  overscroll-behavior-y:contain;
+}
+/* ---------- header ---------- */
+header{
+  position:sticky;top:0;z-index:40;
+  padding:calc(10px + env(safe-area-inset-top)) 14px 10px;
+  background:linear-gradient(180deg, rgba(15,36,27,.97) 0%, rgba(15,36,27,.92) 100%);
+  border-bottom:3px solid #0b1d15;
+  backdrop-filter:blur(6px);
+  transition:transform .28s ease;
+}
+header.nav-hidden{transform:translateY(-100%)}
+/* ---------- top nav (dropdown menus) ---------- */
+.topnav{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;
+  margin-top:10px;padding-top:9px;border-top:2px solid rgba(255,255,255,.08)}
+.tnitem{position:relative}
+.tnbtn{
+  background:rgba(255,255,255,.07);color:#f3efe2;border:2px solid rgba(0,0,0,.3);
+  border-radius:9px;padding:7px 12px;font-size:13px;font-weight:800;cursor:pointer;
+  font-family:inherit;display:flex;align-items:center;gap:5px;transition:background .15s,color .15s,border-color .15s;
+}
+.tnbtn:hover,.tnbtn.on{background:var(--gold);color:#211a05;border-color:#8a6a14}
+.tnbtn .car{font-size:10px;opacity:.85}
+.tndrop{
+  position:absolute;top:calc(100% + 7px);left:50%;
+  min-width:166px;max-height:64vh;overflow-y:auto;
+  background:var(--card);border:3px solid var(--card-edge);border-radius:12px;
+  box-shadow:0 8px 0 rgba(0,0,0,.35);padding:6px;z-index:70;
+  opacity:0;visibility:hidden;pointer-events:none;
+  transform:translateX(-50%) translateY(-7px);
+  transition:opacity .18s ease,transform .18s ease,visibility .18s;
+}
+.tnitem:hover .tndrop{opacity:1;visibility:visible;pointer-events:auto;transform:translateX(-50%) translateY(0)}
+.tndrop a{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:8px 11px;border-radius:8px;color:var(--ink);font-size:13px;font-weight:700;
+  white-space:nowrap;cursor:pointer;position:relative}
+.tndrop a:hover{background:rgba(0,0,0,.08)}
+.tndrop a .car{font-size:11px;opacity:.6}
+.tnsub{
+  position:absolute;top:-3px;left:calc(100% + 5px);
+  min-width:140px;background:var(--card);border:3px solid var(--card-edge);border-radius:12px;
+  box-shadow:0 8px 0 rgba(0,0,0,.35);padding:6px;z-index:80;
+  opacity:0;visibility:hidden;pointer-events:none;transform:translateX(-6px);
+  transition:opacity .15s ease,transform .15s ease,visibility .15s;
+}
+.hassub:hover .tnsub{opacity:1;visibility:visible;pointer-events:auto;transform:none}
+.topnav.suppress .tndrop,.topnav.suppress .tnsub{opacity:0!important;visibility:hidden!important;pointer-events:none!important}
+.brand{display:flex;align-items:baseline;gap:8px;margin-bottom:8px}
+.brand h1{
+  font-size:22px;font-weight:900;letter-spacing:.5px;
+  color:var(--gold);text-shadow:0 2px 0 #000;
+}
+.brand span{font-size:11px;color:var(--text-dim);font-weight:600}
+.searchrow{display:flex;gap:8px}
+.searchrow input{
+  flex:1;height:40px;border-radius:10px;border:3px solid var(--card-edge);
+  background:var(--card);color:var(--ink);font-size:16px;font-weight:600;
+  padding:0 12px;outline:none;box-shadow:0 3px 0 rgba(0,0,0,.45);
+}
+.searchrow input::placeholder{color:#8a8674}
+/* filter chips */
+.chips{display:flex;gap:6px;overflow-x:auto;padding:8px 0 2px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.fchip{
+  flex:0 0 auto;padding:6px 12px;border-radius:999px;font-size:12px;font-weight:800;
+  border:2.5px solid var(--card-edge);background:#0f241b;color:var(--text-dim);
+  box-shadow:0 2px 0 rgba(0,0,0,.4);cursor:pointer;user-select:none;
+}
+.fchip.on{background:var(--gold);color:#211a05;border-color:#7a5c12}
+.fchip.r-common.on{background:var(--common);color:#fff;border-color:#005a9e}
+.fchip.r-uncommon.on{background:var(--uncommon);color:#06281b;border-color:#1a6e4c}
+.fchip.r-rare.on{background:var(--rare);color:#fff;border-color:#8f1d14}
+.fchip.r-legendary.on{background:var(--legendary);color:#fff;border-color:#5e2a66}
+/* ---------- card grid ---------- */
+main{padding:12px 12px 24px}
+.count{font-size:11px;font-weight:700;color:var(--text-dim);margin:2px 2px 10px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:10px}
+.bcard{
+  background:var(--card);border:3px solid var(--card-edge);border-radius:12px;
+  box-shadow:0 4px 0 rgba(0,0,0,.45);
+  padding:8px 7px 7px;display:flex;flex-direction:column;gap:6px;
+  cursor:pointer;transition:transform .08s ease;
+  min-height:118px;position:relative;overflow:hidden;
+}
+.bcard:active{transform:translateY(2px) rotate(-1deg);box-shadow:0 2px 0 rgba(0,0,0,.45)}
+.bcard .art{
+  aspect-ratio:71/95;width:100%;border-radius:7px;position:relative;overflow:hidden;
+}
+.bcard .art img,.dart img{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:contain;
+  image-rendering:pixelated;border-radius:inherit;
+}
+/* placeholder box (tint + glyph): hidden by default, shown only if the image fails to load */
+.art .ph,.dart .ph{
+  position:absolute;inset:0;display:none;align-items:center;justify-content:center;
+  border-radius:inherit;color:#fff;font-weight:900;text-shadow:0 2px 0 rgba(0,0,0,.4);letter-spacing:1px;
+}
+.art .ph{font-size:20px;border:2px solid rgba(0,0,0,.25)}
+.dart .ph{font-size:26px;border:2.5px solid rgba(0,0,0,.3)}
+.art.noimg .ph,.dart.noimg .ph{display:flex}
+.bcard .nm{font-size:11.5px;font-weight:800;color:var(--ink);line-height:1.15}
+.bcard .meta{display:flex;justify-content:space-between;align-items:center;margin-top:auto}
+.rdot{width:9px;height:9px;border-radius:3px;border:1.5px solid rgba(0,0,0,.35)}
+.cost{font-size:11px;font-weight:900;color:#9b7b16}
+/* glyph art */
+.art .gl,.dart .gl{font-size:30px;line-height:1;filter:drop-shadow(0 2px 0 rgba(0,0,0,.35))}
+.dart .gl{font-size:40px}
+.planetball{width:34px;height:34px;border-radius:50%;border:2px solid rgba(0,0,0,.3);
+  background:radial-gradient(circle at 32% 28%, rgba(255,255,255,.85), var(--pc) 55%, rgba(0,0,0,.35));
+  position:relative}
+.dart .planetball{width:48px;height:48px}
+.planetball.ring::after{content:'';position:absolute;left:-9px;right:-9px;top:42%;height:8px;
+  border:2px solid rgba(0,0,0,.45);border-radius:50%;background:rgba(255,255,255,.35);transform:rotate(-18deg)}
+.t-tag{background:linear-gradient(160deg,#6aa8e8,#2f5fa8)}
+/* rarity art tints */
+.t-common{background:linear-gradient(160deg,#33a7ff,#0070cc)}
+.t-uncommon{background:linear-gradient(160deg,#46d49a,#1f8a5e)}
+.t-rare{background:linear-gradient(160deg,#ff6a5e,#cc2e22)}
+.t-legendary{background:linear-gradient(160deg,#c178cb,#7e3b88)}
+.t-tarot{background:linear-gradient(160deg,#b9a0fc,#7c5cd6)}
+.t-planet{background:linear-gradient(160deg,#7fe0f2,#2f9cb4)}
+.t-spectral{background:linear-gradient(160deg,#9fd4ff,#3f7fc4)}
+.t-deck{background:linear-gradient(160deg,#f0c95c,#b88a1e)}
+.t-seal{background:linear-gradient(160deg,#e88aa0,#c23a5c)}
+.t-stake{background:linear-gradient(160deg,#e57368,#b02a1d)}
+.t-sticker{background:linear-gradient(160deg,#b8c0c2,#7f8c8d)}
+.t-enh{background:linear-gradient(160deg,#7fd3a3,#3f9e6e)}
+.t-voucher{background:linear-gradient(160deg,#e6c66a,#b8902a)}
+.t-blind{background:linear-gradient(160deg,#b07ad0,#6f2f9e)}
+.t-pack{background:linear-gradient(160deg,#f0a35c,#c2641e)}
+/* ---------- detail modal ---------- */
+.overlay{
+  position:fixed;inset:0;z-index:60;background:rgba(8,20,15,.78);
+  display:none;align-items:center;justify-content:center;padding:16px;
+}
+.overlay.show{display:flex}
+.sheet{
+  width:100%;max-width:560px;max-height:88vh;overflow-y:auto;
+  background:var(--card);color:var(--ink);
+  border:3px solid var(--card-edge);
+  border-radius:18px;
+  padding:16px 16px 20px;
+  box-shadow:0 6px 0 rgba(0,0,0,.35);
+  animation:up .18s ease;
+}
+@keyframes up{from{transform:translateY(24px) scale(.97);opacity:.4}to{transform:none;opacity:1}}
+.sheet .grab{width:44px;height:5px;border-radius:3px;background:#c9c2ab;margin:0 auto 12px}
+.dhead{display:flex;gap:12px;align-items:flex-start}
+.dart{
+  flex:0 0 64px;height:88px;border-radius:9px;
+  display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;
+}
+.dtitle{font-size:19px;font-weight:900;line-height:1.1}
+.badges{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.badge{
+  font-size:10.5px;font-weight:900;padding:3px 9px;border-radius:6px;color:#fff;
+  border:2px solid rgba(0,0,0,.3);box-shadow:0 2px 0 rgba(0,0,0,.25);
+  text-transform:uppercase;letter-spacing:.5px;
+}
+.b-cost{background:var(--gold);color:#211a05}
+.effectbox{
+  margin-top:14px;background:#fffdf4;border:2.5px dashed #b9b094;border-radius:10px;
+  padding:10px 12px;font-size:14.5px;font-weight:700;line-height:1.45;
+}
+.effectbox .lbl, .secthead{
+  font-size:10px;font-weight:900;letter-spacing:1.2px;text-transform:uppercase;color:#8d8568;
+  display:block;margin-bottom:4px;
+}
+.notes{margin-top:12px;font-size:13.5px;line-height:1.5;color:#4c4838}
+.syntags{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+.syntag{
+  font-size:11px;font-weight:800;padding:4px 10px;border-radius:999px;
+  background:#e8e1cb;border:2px solid #b9b094;color:#5a5440;
+}
+.relrow{display:flex;gap:8px;overflow-x:auto;margin-top:10px;padding-bottom:4px}
+.relcard{
+  flex:0 0 auto;font-size:11.5px;font-weight:800;padding:6px 10px;border-radius:8px;
+  background:#fffdf4;border:2px solid #b9b094;color:#3c3828;box-shadow:0 2px 0 rgba(0,0,0,.15);
+}
+/* ---------- synergies ---------- */
+.synblock{
+  background:var(--card);color:var(--ink);border:3px solid var(--card-edge);
+  border-radius:14px;box-shadow:0 4px 0 rgba(0,0,0,.45);
+  padding:12px 14px;margin-bottom:12px;
+}
+.synblock h3{font-size:15px;font-weight:900;display:flex;align-items:center;gap:8px}
+.synblock .tier{
+  font-size:9.5px;font-weight:900;padding:2px 8px;border-radius:5px;color:#fff;
+  background:var(--mult);border:2px solid rgba(0,0,0,.3);letter-spacing:.5px;
+}
+.synblock .pieces{display:flex;flex-wrap:wrap;gap:6px;margin:9px 0}
+.piece{
+  font-size:11px;font-weight:800;padding:4px 10px;border-radius:7px;color:#fff;
+  border:2px solid rgba(0,0,0,.3);box-shadow:0 2px 0 rgba(0,0,0,.2);cursor:pointer;
+}
+.synblock p{font-size:13px;line-height:1.5;color:#4c4838}
+/* ---------- quiz ---------- */
+.qwrap{padding:4px 2px}
+.qmodes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.qmode{
+  background:var(--card);color:var(--ink);border:3px solid var(--card-edge);
+  border-radius:14px;box-shadow:0 4px 0 rgba(0,0,0,.45);padding:14px 12px;cursor:pointer;
+}
+.qmode:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.45)}
+.qmode .qi{font-size:24px}
+.qmode .qt{font-size:13.5px;font-weight:900;margin-top:6px}
+.qmode .qd{font-size:11px;color:#6b6450;font-weight:600;margin-top:2px;line-height:1.35}
+.scorebar{
+  display:flex;gap:10px;margin-bottom:14px;
+}
+.scorebox{
+  flex:1;text-align:center;background:#0f241b;border:3px solid var(--card-edge);
+  border-radius:12px;padding:8px 4px;box-shadow:0 3px 0 rgba(0,0,0,.4);
+}
+.scorebox .v{font-size:20px;font-weight:900}
+.scorebox .l{font-size:9.5px;font-weight:800;letter-spacing:1px;color:var(--text-dim)}
+.v.chips{color:var(--chip)} .v.mult{color:var(--mult)} .v.goldv{color:var(--gold)}
+.qcard{
+  background:var(--card);color:var(--ink);border:3px solid var(--card-edge);
+  border-radius:14px;box-shadow:0 5px 0 rgba(0,0,0,.45);padding:16px 14px;
+}
+.qprompt{font-size:15.5px;font-weight:800;line-height:1.45}
+.qprompt .em{color:#9b7b16}
+.qopts{display:flex;flex-direction:column;gap:9px;margin-top:14px}
+.qopt{
+  text-align:left;font:inherit;font-size:13.5px;font-weight:700;line-height:1.35;
+  background:#fffdf4;border:2.5px solid #b9b094;border-radius:10px;
+  padding:11px 12px;cursor:pointer;box-shadow:0 3px 0 rgba(0,0,0,.18);color:#3c3828;
+}
+.qopt:disabled{opacity:.92}
+.qopt.correct{background:#d9f5e6;border-color:#1f8a5e;color:#0d4a30}
+.qopt.wrong{background:#ffe1de;border-color:#cc2e22;color:#7a1812}
+.qnext{
+  margin-top:14px;width:100%;height:46px;border-radius:11px;font-size:15px;font-weight:900;
+  background:var(--gold);color:#211a05;border:3px solid #7a5c12;
+  box-shadow:0 4px 0 rgba(0,0,0,.35);cursor:pointer;font-family:inherit;
+}
+.qnext:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.35)}
+.qfeedback{margin-top:10px;font-size:13px;font-weight:800;min-height:18px}
+.qfeedback.ok{color:#1f8a5e}.qfeedback.no{color:#cc2e22}
+.qresult{text-align:center;padding:10px 0}
+.qresult .big{font-size:40px;font-weight:900;color:var(--gold);text-shadow:0 3px 0 rgba(0,0,0,.5)}
+.qresult .sub{font-size:13px;color:#4c4838;font-weight:700;margin-top:4px}
+.qback{background:none;border:none;color:var(--text-dim);font-weight:800;font-size:12px;
+  margin-bottom:10px;cursor:pointer;font-family:inherit;padding:4px 0}
+/* ---------- tutorial ---------- */
+.tutwrap{max-width:640px;margin:0 auto}
+.tutbar{margin:2px 2px 12px}
+.tutprog{height:7px;border-radius:5px;background:rgba(255,255,255,.12);overflow:hidden;margin-bottom:9px}
+.tutprog>i{display:block;height:100%;background:var(--gold);border-radius:5px;transition:width .25s ease}
+.tutdots{display:flex;gap:5px;flex-wrap:wrap}
+.tutdot{min-width:24px;height:24px;border-radius:7px;border:2px solid rgba(0,0,0,.3);
+  background:#0f241b;color:var(--text-dim);font-size:11px;font-weight:800;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;padding:0 6px;transition:background .15s,color .15s}
+.tutdot.on{background:var(--gold);color:#211a05;border-color:#8a6a14}
+.tutdot.done{color:#7fd3a3;border-color:#2f6a4e}
+.tutcard{background:var(--card);color:var(--ink);border:3px solid var(--card-edge);border-radius:16px;
+  box-shadow:0 5px 0 rgba(0,0,0,.35);padding:18px 18px 20px}
+.tutcard h2{font-size:21px;font-weight:900;color:#3a2f12;margin-bottom:2px}
+.tutstep{font-size:11px;font-weight:800;color:#8a7d52;letter-spacing:.6px;text-transform:uppercase;margin-bottom:10px}
+.tutcard p{font-size:14px;line-height:1.5;color:#403a2a;margin:9px 0}
+.tutcard b{color:#1a1a1a}
+.tutcard ul{margin:8px 0 8px 2px;list-style:none;display:flex;flex-direction:column;gap:7px}
+.tutcard li{font-size:13.5px;line-height:1.45;color:#403a2a;padding-left:22px;position:relative}
+.tutcard li:before{content:"♠";position:absolute;left:0;top:0;color:var(--mult);font-weight:900}
+.tutcard .em{font-weight:900;color:var(--mult)}
+.tlink{display:inline-block;margin:6px 6px 0 0;padding:7px 12px;border-radius:9px;border:2px solid #b9b094;
+  background:#efe8d2;color:#3a2f12;font-weight:800;font-size:12.5px;cursor:pointer;font-family:inherit}
+.tlink:hover{background:var(--gold);border-color:#8a6a14}
+.tutnav{display:flex;justify-content:space-between;gap:10px;margin-top:18px}
+.tutbtn{flex:1;height:46px;border-radius:12px;font-size:15px;font-weight:900;font-family:inherit;cursor:pointer;
+  border:3px solid #7a5c12;background:var(--gold);color:#211a05;box-shadow:0 4px 0 rgba(0,0,0,.35)}
+.tutbtn.sec{background:#e8e1cb;border-color:#b9b094;color:#4c4838}
+.tutbtn:active{transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.35)}
+.tutbtn:disabled{opacity:.4;cursor:default}
+/* scoring playground */
+.sdemo{background:#fffdf5;border:2px dashed #c7bd99;border-radius:13px;padding:13px;margin:14px 0 4px}
+.sdlbl{font-weight:800;font-size:12px;color:#6b6450;margin:2px 0 5px}
+.sdrow{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}
+.sdchip{padding:6px 10px;border-radius:8px;border:2px solid rgba(0,0,0,.25);background:#eee6cf;
+  font-size:12px;font-weight:800;color:#3a3320;cursor:pointer;transition:background .12s,color .12s}
+.sdchip.on{background:var(--chip);color:#fff;border-color:#06557f}
+.sdchip.sdjok.on{background:var(--mult);color:#fff;border-color:#a3261f}
+.sdscore{display:flex;align-items:center;justify-content:center;gap:9px;margin-top:12px;flex-wrap:wrap}
+.sdscore .pill{padding:8px 14px;border-radius:9px;font-size:17px;font-weight:900;color:#fff;box-shadow:0 3px 0 rgba(0,0,0,.3)}
+.sdscore .chips{background:var(--chip)}
+.sdscore .mult{background:var(--mult)}
+.sdscore .x{font-size:18px;color:#6b6450;font-weight:900}
+.sdtotal{text-align:center;margin-top:12px;font-size:13px;font-weight:800;color:#6b6450;letter-spacing:.5px}
+.sdtotal b{display:block;font-size:30px;color:#a8791e;text-shadow:0 2px 0 rgba(0,0,0,.18);margin-top:2px}
+/* ---------- play (mini game) ---------- */
+.pgwrap{max-width:680px;margin:0 auto}
+.pblind{text-align:center;font-weight:900;font-size:16px;color:var(--gold);margin-bottom:8px;text-shadow:0 2px 0 #000}
+.phud{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:2px 0 12px}
+.pstat{background:#0f241b;border:2px solid rgba(0,0,0,.35);border-radius:9px;padding:6px 9px;font-size:10px;font-weight:800;color:var(--text-dim);text-align:center;min-width:56px;letter-spacing:.4px}
+.pstat b{display:block;font-size:14px;color:#fff;margin-top:2px;letter-spacing:0}
+.pstat.tgt b{color:var(--mult)} .pstat.scr b{color:var(--gold)} .pstat.cash b{color:#7fd3a3}
+.pjokers{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;min-height:10px;margin-bottom:12px}
+.pjok{background:var(--card);color:var(--ink);border:2px solid var(--card-edge);border-radius:9px;padding:6px;font-size:10.5px;font-weight:800;width:78px;cursor:default;position:relative;text-align:center}
+.pjok .pjnm{margin-top:3px;line-height:1.15}
+.pjok small{display:block;font-weight:600;color:#6b6450;font-size:9px;line-height:1.18;margin-top:1px}
+.pjok .sell{display:block;margin-top:4px;color:#a3261f;font-weight:800;font-size:10px}
+.pjart{aspect-ratio:71/95;width:100%;border-radius:6px;position:relative;overflow:hidden}
+.pjart img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;image-rendering:pixelated;border-radius:inherit}
+.pjart .ph{position:absolute;inset:0;display:none;align-items:center;justify-content:center;border-radius:inherit;color:#fff;font-weight:900;font-size:13px;text-shadow:0 2px 0 rgba(0,0,0,.4)}
+.pjart.noimg .ph{display:flex}
+.pbuy .pjart{width:62px;margin:0 auto 7px}
+.psort{display:flex;gap:8px;justify-content:center;margin-bottom:8px}
+.psort button{height:30px;font-size:11px;padding:0 12px;border-radius:8px;font-weight:800;font-family:inherit;cursor:pointer;background:#0f241b;color:var(--text-dim);border:2px solid #0b1d15}
+.psort button.on{background:var(--gold);color:#211a05;border-color:#8a6a14}
+.phand{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;margin:8px 0 12px;min-height:70px}
+.pcard{width:48px;height:66px;border-radius:8px;background:#fbfaf5;border:2px solid #15110c;
+  box-shadow:0 3px 0 rgba(0,0,0,.4);cursor:pointer;position:relative;transition:transform .1s ease;}
+.pcard.sel{transform:translateY(-14px);box-shadow:0 9px 0 rgba(242,193,78,.55),0 3px 0 rgba(0,0,0,.4);border-color:var(--gold)}
+.pcard .pr{position:absolute;top:3px;left:5px;font-size:13px;font-weight:900;line-height:1}
+.pcard .ps{position:absolute;bottom:3px;right:5px;font-size:22px;line-height:1}
+.pcard.red{color:#d4302a} .pcard.blk{color:#1a1a1a}
+.ppreview{text-align:center;font-weight:800;font-size:13px;color:var(--text-dim);min-height:18px;margin-bottom:8px}
+.ppreview b{color:#fff}
+.pacts{display:flex;gap:10px;max-width:420px;margin:0 auto}
+.pbtn{flex:1;height:46px;border-radius:12px;font-size:14px;font-weight:900;font-family:inherit;cursor:pointer;border:3px solid #7a5c12;background:var(--gold);color:#211a05;box-shadow:0 4px 0 rgba(0,0,0,.35)}
+.pbtn.disc{background:var(--mult);border-color:#a3261f;color:#fff}
+.pbtn.sec{background:#0f241b;border-color:#0b1d15;color:var(--text-dim)}
+.pbtn:disabled{opacity:.4;cursor:default;box-shadow:0 4px 0 rgba(0,0,0,.2)}
+.pbtn:active:not(:disabled){transform:translateY(2px);box-shadow:0 2px 0 rgba(0,0,0,.35)}
+.pshop,.pover{max-width:560px;margin:0 auto;background:var(--card);color:var(--ink);border:3px solid var(--card-edge);border-radius:16px;box-shadow:0 5px 0 rgba(0,0,0,.35);padding:18px}
+.pshop h2,.pover h2{font-size:21px;font-weight:900;color:#3a2f12;text-align:center;margin-bottom:4px}
+.pshop .sub{text-align:center;font-size:12px;color:#6b6450;font-weight:700;margin-bottom:14px;line-height:1.5}
+.pshop .sub b{color:#a8791e}
+.pshelf{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:6px}
+.pbuy{width:144px;background:#fffdf5;border:2px solid #c7bd99;border-radius:11px;padding:10px;text-align:center;cursor:pointer}
+.pbuy .nm{font-weight:900;font-size:13px;color:#2f2710}
+.pbuy .ds{font-size:11px;color:#6b6450;font-weight:600;margin:5px 0;min-height:30px;line-height:1.3}
+.pbuy .pr{font-weight:900;color:#a8791e;font-size:14px}
+.pbuy:hover{border-color:var(--gold)}
+.pbuy.cant{opacity:.45;cursor:default}
+.pshop .lbl{font-weight:800;font-size:12px;color:#6b6450;margin:12px 0 6px}
+.pshop .row{display:flex;gap:10px;justify-content:center;margin-top:16px}
+.pover{text-align:center}
+.pover .big{font-size:30px;font-weight:900;margin:8px 0}
+.pover .win{color:#1f8a5e}.pover .lose{color:#cc2e22}
+.pover p{font-size:13px;color:#6b6450;font-weight:700}
+.pcard.scoring{outline:3px solid #35bd86;outline-offset:1px}
+.pcard .sc{position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:#35bd86;color:#06351f;font-size:9px;font-weight:900;padding:1px 5px;border-radius:6px;border:1.5px solid #06351f}
+.pcard .enb{position:absolute;top:2px;right:2px;background:#2b2b2b;color:#fff;font-size:7.5px;font-weight:900;padding:1px 3px;border-radius:4px;line-height:1.1}
+.pcard .seal{position:absolute;bottom:3px;left:4px;width:9px;height:9px;border-radius:50%;border:1.5px solid rgba(0,0,0,.45)}
+.pcard .seal.s-gold{background:#e8b923}.pcard .seal.s-red{background:#d4302a}.pcard .seal.s-blue{background:#3f7fc4}.pcard .seal.s-purple{background:#8e5bd0}
+.pcard.ed-foil{box-shadow:0 0 0 2px #7fd3ff,0 3px 0 rgba(0,0,0,.4)}
+.pcard.ed-holo{box-shadow:0 0 0 2px #ff7fc4,0 3px 0 rgba(0,0,0,.4)}
+.pcard.ed-poly{box-shadow:0 0 0 2px #f2c14e,0 3px 0 rgba(0,0,0,.4)}
+.pcons{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;min-height:8px;margin-bottom:10px}
+.pcon{background:#fff7e6;color:var(--ink);border:2px solid #cdbf94;border-radius:9px;padding:6px;font-size:10.5px;font-weight:800;width:80px;cursor:pointer;text-align:center;position:relative}
+.pcon:hover{border-color:var(--gold)}
+.pcon .pjnm{margin-top:3px;line-height:1.13}
+.pcon small{display:block;font-weight:600;color:#6b6450;font-size:9px;line-height:1.18;margin-top:1px}
+.pcon .use{display:block;margin-top:4px;color:#2f8a5e;font-weight:800;font-size:9px}
+/* round-select / skip */
+.pselrow{display:flex;gap:10px;max-width:480px;margin:14px auto 0;flex-wrap:wrap}
+.pselrow .pbtn{flex:1 1 200px;height:auto;min-height:60px;padding:11px 10px;line-height:1.35}
+.pselrow .pbtn small{display:block;font-weight:700;font-size:11px;opacity:.85;margin-top:3px}
+.pbtn.skip{background:#7ec8ff;border-color:#3f7fc4;color:#0e2238}
+.pbosswarn{max-width:480px;margin:12px auto 0;text-align:center;font-size:12px;font-weight:700;color:var(--text-dim)}
+.ptagmsg{max-width:480px;margin:14px auto 0;background:#0f241b;border:2px solid #2f6a4e;border-radius:10px;padding:9px 12px;color:#9fe0bd;font-size:12px;font-weight:700;text-align:center}
+.podds{max-width:520px;margin:16px auto 0;text-align:center}
+.podds .tog{font-size:12px;font-weight:800;color:var(--text-dim);cursor:pointer;border:2px solid rgba(255,255,255,.15);border-radius:8px;padding:6px 12px;display:inline-block}
+.oddsgrid{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-top:10px}
+.oddsgrid .ocell{background:#0f241b;border:2px solid rgba(0,0,0,.3);border-radius:7px;padding:4px 7px;font-size:10.5px;font-weight:700;color:var(--text-dim)}
+.oddsgrid .ocell b{color:var(--gold);font-weight:900}
+.oddsgrid .ocell.hot{border-color:var(--gold);color:#fff}
+/* ---------- bottom nav ---------- */
+nav{
+  position:fixed;left:0;right:0;bottom:0;z-index:50;
+  display:flex;justify-content:space-around;align-items:stretch;
+  background:#0f241b;border-top:3px solid #0b1d15;
+  padding:6px 4px calc(6px + env(safe-area-inset-bottom));
+}
+nav button{
+  flex:1;background:none;border:none;color:#7fa18d;font-family:inherit;
+  font-size:10px;font-weight:800;letter-spacing:.4px;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0;border-radius:10px;
+}
+nav button .ic{font-size:20px;line-height:1}
+nav button.on{color:var(--gold)}
+.hidden{display:none!important}
+.empty{
+  text-align:center;padding:40px 20px;color:var(--text-dim);font-weight:700;font-size:13.5px;line-height:1.5;
+}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand"><h1>BALATRODEX</h1><span>card reference &amp; quiz</span></div>
+  <div class="searchrow" id="searchrow">
+    <input id="search" type="search" placeholder="Search cards…" autocomplete="off">
+  </div>
+  <div class="chips" id="typechips"></div>
+  <div class="chips" id="raritychips"></div>
+  <div class="topnav" id="topnav"></div>
+</header>
+
+<main>
+  <section id="view-cards">
+    <div class="count" id="count"></div>
+    <div class="grid" id="grid"></div>
+    <div class="empty hidden" id="noresults">No cards match.<br>Clear the search or filters.</div>
+  </section>
+
+  <section id="view-syn" class="hidden"></section>
+
+  <section id="view-decks" class="hidden"><div class="grid" id="deckgrid"></div></section>
+
+  <section id="view-quiz" class="hidden"><div class="qwrap" id="qwrap"></div></section>
+
+  <section id="view-tut" class="hidden"></section>
+
+  <section id="view-play" class="hidden"></section>
+</main>
+
+<div class="overlay" id="overlay"><div class="sheet" id="sheet"></div></div>
+
+<nav>
+  <button id="nav-cards" class="on" onclick="go('cards')"><span class="ic">🃏</span>Cards</button>
+  <button id="nav-syn" onclick="go('syn')"><span class="ic">🔗</span>Synergies</button>
+  <button id="nav-decks" onclick="go('decks')"><span class="ic">🂠</span>Decks</button>
+  <button id="nav-tut" onclick="go('tut')"><span class="ic">🎓</span>Learn</button>
+  <button id="nav-play" onclick="go('play')"><span class="ic">🎮</span>Play</button>
+  <button id="nav-quiz" onclick="go('quiz')"><span class="ic">🎯</span>Quiz</button>
+</nav>
+
+<script>
+// ============================================================
+// DATA — effects paraphrased for reference. img:'' is a hook:
+// if you self-host a personal copy, drop sprite URLs in there
+// and the cards will render them automatically.
+// ============================================================
+const JOKERS=[
+// ---- COMMON ----
+J('joker','Joker','Common',2,'+4 Mult','mult','The original. Cheap flat Mult; fine early, replace by Ante 3-4.'),
+J('greedy','Greedy Joker','Common',5,'Played cards with Diamond suit give +3 Mult when scored','suit,mult','Flush builds; pair with Smeared Joker to count Hearts too.'),
+J('lusty','Lusty Joker','Common',5,'Played cards with Heart suit give +3 Mult when scored','suit,mult','Flush builds; Smeared Joker doubles its coverage.'),
+J('wrathful','Wrathful Joker','Common',5,'Played cards with Spade suit give +3 Mult when scored','suit,mult','Flush builds; Smeared Joker pairs it with Clubs.'),
+J('gluttonous','Gluttonous Joker','Common',5,'Played cards with Club suit give +3 Mult when scored','suit,mult','Flush builds; Smeared Joker pairs it with Spades.'),
+J('jolly','Jolly Joker','Common',3,'+8 Mult if played hand contains a Pair','hand,mult','Triggers on almost everything. Strong ante-1 value.'),
+J('zany','Zany Joker','Common',4,'+12 Mult if played hand contains a Three of a Kind','hand,mult','Three of a Kind builds with Trio-style payoffs.'),
+J('mad','Mad Joker','Common',4,'+10 Mult if played hand contains a Two Pair','hand,mult','Two Pair decks; pairs with Spare Trousers and Clever Joker.'),
+J('crazy','Crazy Joker','Common',4,'+12 Mult if played hand contains a Straight','hand,mult','Straight builds with Shortcut and Four Fingers.'),
+J('droll','Droll Joker','Common',4,'+10 Mult if played hand contains a Flush','hand,mult','Flush builds; cheap and consistent.'),
+J('sly','Sly Joker','Common',3,'+50 Chips if played hand contains a Pair','hand,chips','Chip-side twin of Jolly.'),
+J('wily','Wily Joker','Common',4,'+100 Chips if played hand contains a Three of a Kind','hand,chips','Chip support for trips builds.'),
+J('clever','Clever Joker','Common',4,'+80 Chips if played hand contains a Two Pair','hand,chips','Chip support for Two Pair builds.'),
+J('devious','Devious Joker','Common',4,'+100 Chips if played hand contains a Straight','hand,chips','Chip support for Straight builds.'),
+J('crafty','Crafty Joker','Common',4,'+80 Chips if played hand contains a Flush','hand,chips','Chip support for Flush builds.'),
+J('half','Half Joker','Common',5,'+20 Mult if played hand contains 3 or fewer cards','hand,mult','Pairs-only playstyle; strong with The Duo and Baron Kings held back.'),
+J('stencil','Joker Stencil','Uncommon',8,'×1 Mult for each empty Joker slot (Stencil counts as empty)','xmult,economy','Few-joker builds; brutal with Blueprint + one big scaler.'),
+J('fourfingers','Four Fingers','Uncommon',7,'All Flushes and Straights can be made with 4 cards','utility,hand','Core Straight/Flush enabler; combos with Shortcut and Smeared.'),
+J('mime','Mime','Uncommon',5,'Retrigger all card held-in-hand abilities','retrigger','Baron + Mime + Steel Kings is a classic endless-scaling shell.'),
+J('creditcard','Credit Card','Common',1,'Go up to -$20 in debt','economy','Free economy flex; lets you buy ahead of interest breakpoints.'),
+J('dagger','Ceremonial Dagger','Uncommon',6,'When Blind is selected, destroy Joker to the right and permanently add double its sell value to this Mult','mult,destroy','Feed it cheap jokers each shop; scales fast.'),
+J('banner','Banner','Common',5,'+30 Chips for each remaining discard','chips','Strong with discard-hoarding play; anti-synergy with Ride the Bus style spam.'),
+J('mysticsummit','Mystic Summit','Common',5,'+15 Mult when 0 discards remaining','mult','Burn discards first, then play. Pairs with Banner inversely.'),
+J('marble','Marble Joker','Uncommon',6,'When Blind is selected, add one Stone card to deck','deckmod','Stone deck fodder; combos with Stone Joker.'),
+J('loyalty','Loyalty Card','Uncommon',5,'×4 Mult every 6th hand played','xmult','Time the big hand for the boss blind.'),
+J('eightball','8 Ball','Common',5,'1 in 4 chance per played 8 to create a Tarot card when scored','tarot,chance','8-heavy decks; fuels Fortune Teller.'),
+J('misprint','Misprint','Common',4,'+0 to +23 Mult (random)','mult,chance','Averages ~+11.5 Mult. Chaos, but decent value.'),
+J('dusk','Dusk','Uncommon',5,'Retrigger all played cards in final hand of round','retrigger','Save the nuke hand for last; pairs with Hack and steel/glass cards.'),
+J('raisedfist','Raised Fist','Common',5,'Adds double the rank of lowest held card to Mult','mult,hand','Hold a low card deliberately; 2s give +4, Aces held give +22.'),
+J('chaos','Chaos the Clown','Common',4,'1 free Reroll per shop','economy','Quietly strong all game; more shop rolls = more jokers seen.'),
+J('fibonacci','Fibonacci','Uncommon',8,'Each played Ace, 2, 3, 5, or 8 gives +8 Mult when scored','mult,rank','Fib-rank deck warping; strong with Straights (A-2-3-5 + filler).'),
+J('steeljoker','Steel Joker','Uncommon',7,'×0.2 Mult for each Steel card in your full deck','xmult,steel','Steel-stacking builds; counts deck-wide, not just held.'),
+J('scaryface','Scary Face','Common',4,'Played face cards give +30 Chips when scored','chips,face','Face decks; pairs with Smiley Face, Photograph, Sock and Buskin.'),
+J('abstract','Abstract Joker','Common',4,'+3 Mult for each Joker card you own','mult','Worth +15 with a full board; weak early, fine mid.'),
+J('gratification','Delayed Gratification','Common',4,'Earn $2 per discard if no discards used by end of round','economy','Pure econ in no-discard playstyles; anti-synergy with discard engines.'),
+J('hack','Hack','Uncommon',6,'Retrigger each played 2, 3, 4, or 5','retrigger,rank','Low-rank Straight builds; pairs with Fibonacci and Hanging Chad.'),
+J('pareidolia','Pareidolia','Uncommon',5,'All cards are considered face cards','face,utility','Turns the whole deck on for Scary Face / Smiley / Photograph / Sock and Buskin / Midas Mask.'),
+J('grosmichel','Gros Michel','Common',5,'+15 Mult; 1 in 6 chance destroyed at end of round','mult,chance','Big early Mult; when it dies, Cavendish can spawn.'),
+J('evensteven','Even Steven','Common',4,'Played even-rank cards (10,8,6,4,2) give +4 Mult when scored','mult,rank','Even-rank deck warping; opposite of Odd Todd.'),
+J('oddtodd','Odd Todd','Common',4,'Played odd-rank cards (A,9,7,5,3) give +31 Chips when scored','chips,rank','Odd-rank warping; pairs with Fibonacci ranks partially.'),
+J('scholar','Scholar','Common',4,'Played Aces give +20 Chips and +4 Mult when scored','rank,chips,mult','Ace-heavy decks; DNA-copied Aces love this.'),
+J('businesscard','Business Card','Common',4,'Played face cards have 1 in 2 chance to give $2 when scored','economy,face','Econ trickle; Pareidolia turns it into a money printer.'),
+J('supernova','Supernova','Common',5,'Adds the number of times poker hand has been played this run to Mult','mult,scaling','Stick to one hand type all run; quietly scales forever.'),
+J('ridethebus','Ride the Bus','Common',6,'+1 Mult per consecutive hand played without a scoring face card; resets if face card scores','mult,scaling','No-face builds; resets hurt, pair with deck thinning.'),
+J('spacejoker','Space Joker','Uncommon',5,'1 in 4 chance to upgrade played poker hand level','planet,chance','Free Planet procs; compounds with single-hand builds.'),
+J('egg','Egg','Common',4,'Gains $3 sell value at end of round','economy','Hold a few antes, sell. Pairs with Swashbuckler.'),
+J('burglar','Burglar','Uncommon',6,'When Blind selected, gain +3 hands but lose all discards','utility','Hands > discards in many builds; anti-Banner.'),
+J('blackboard','Blackboard','Uncommon',6,'×3 Mult if all held cards are Spades or Clubs','xmult,suit','Black-suit decks; discard reds, hold blacks.'),
+J('runner','Runner','Common',5,'Gains +15 Chips if played hand contains a Straight','chips,scaling','Permanent chip scaling for Straight spam.'),
+J('icecream','Ice Cream','Common',5,'+100 Chips; loses 5 Chips per hand played','chips','Strong now, gone in ~20 hands. Early tempo buy.'),
+J('dna','DNA','Rare',8,'If first hand of round has exactly 1 card, add a permanent copy to deck and draw it','deckmod','Copy Steel Kings / Glass Aces; deck-building engine.'),
+J('splash','Splash','Common',3,'Every played card counts in scoring','utility','Turns junk cards into chip fodder; great with suit/rank Mult jokers.'),
+J('bluejoker','Blue Joker','Common',5,'+2 Chips per remaining card in deck','chips','Big-deck builds; anti-synergy with deck thinning.'),
+J('sixthsense','Sixth Sense','Uncommon',6,'If first hand of round is a single 6, destroy it and create a Spectral card','spectral','Spectral generator; feed it 6s, pairs with Oops! All 6s thematically.'),
+J('constellation','Constellation','Uncommon',6,'Gains ×0.1 Mult per Planet card used','xmult,planet,scaling','Astronomer + Telescope shell; scales all run.'),
+J('hiker','Hiker','Uncommon',5,'Every played card permanently gains +5 Chips when scored','chips,scaling','Slowly upgrades the whole deck; loves retriggers.'),
+J('faceless','Faceless Joker','Common',4,'Earn $5 if 3 or more face cards are discarded at once','economy,face','Discard face clumps for cash; anti-synergy with face builds.'),
+J('greenjoker','Green Joker','Common',4,'+1 Mult per hand played, -1 Mult per discard','mult,scaling','No-discard playstyle; steady scaling.'),
+J('superposition','Superposition','Common',4,'Create a Tarot card if hand contains an Ace and a Straight','tarot','Ace-Straight builds; fuels Fortune Teller.'),
+J('todolist','To Do List','Common',4,'Earn $4 if played hand matches the listed poker hand; changes each round','economy','Small econ; free money if your build is flexible.'),
+J('cavendish','Cavendish','Common',4,'×3 Mult; 1 in 1000 chance destroyed at end of round','xmult,chance','Gros Michel\\u2019s successor; only appears after Gros Michel dies.'),
+J('cardsharp','Card Sharp','Uncommon',6,'×3 Mult if played hand has already been played this round','xmult','Play the cheap version first, then the real hand.'),
+J('redcard','Red Card','Common',5,'Gains +3 Mult per skipped Booster Pack','mult,scaling','Skip packs you don\\u2019t need; quietly scales.'),
+J('madness','Madness','Uncommon',7,'When Small or Big Blind selected, gain ×0.5 Mult and destroy a random other Joker','xmult,destroy','Feed it cheap jokers; risky but huge ceiling.'),
+J('squarejoker','Square Joker','Common',4,'Gains +4 Chips if played hand has exactly 4 cards','chips,scaling','Four-card hands forever (Four Fingers helps).'),
+J('seance','Séance','Uncommon',6,'If played hand is a Straight Flush, create a random Spectral card','spectral,hand','Straight Flush builds; Spectral engine.'),
+J('riffraff','Riff-Raff','Common',6,'When Blind selected, create 2 Common Jokers if room','utility','Free board filler; fodder for Dagger/Madness.'),
+J('vampire','Vampire','Uncommon',7,'Gains ×0.1 Mult per Enhanced card played; removes the enhancement','xmult,scaling','Eats enhancements for permanent ×Mult; pair with cheap enhancement generators like Midas Mask.'),
+J('shortcut','Shortcut','Uncommon',7,'Straights can be made with gaps of 1 rank (e.g. 2-4-6-8-10)','utility,hand','Straight enabler; with Four Fingers almost everything is a Straight.'),
+J('hologram','Hologram','Uncommon',7,'Gains ×0.25 Mult per playing card added to your deck','xmult,scaling,deckmod','Pairs with Marble, DNA, Certificate, standard packs.'),
+J('vagabond','Vagabond','Rare',8,'Create a Tarot card if hand played with $4 or less','tarot','Stay poor on purpose; Fortune Teller loves it.'),
+J('baron','Baron','Rare',8,'Each King held in hand gives ×1.5 Mult','xmult,rank','Baron + Mime + Steel Kings = one of the strongest shells in the game.'),
+J('cloud9','Cloud 9','Uncommon',7,'Earn $1 per 9 in your full deck at end of round','economy,rank','Nine hoarding econ; DNA on 9s gets silly.'),
+J('rocket','Rocket','Uncommon',6,'Earn $1 at end of round; payout +$2 each Boss Blind defeated','economy,scaling','Compounding econ; buy early.'),
+J('obelisk','Obelisk','Rare',8,'Gains ×0.2 Mult per consecutive hand played that is not your most-played hand','xmult,scaling','Rewards hand diversity; tricky but huge.'),
+J('midasmask','Midas Mask','Uncommon',7,'Played face cards become Gold cards when scored','economy,face','Gold generator; feeds Vampire and Golden Ticket.'),
+J('luchador','Luchador','Uncommon',5,'Sell this card to disable the current Boss Blind','utility','Pocket boss-skip; hold for The Needle / Violet Vessel emergencies.'),
+J('photograph','Photograph','Common',5,'First played face card gives ×2 Mult when scored','xmult,face','Order matters: face card scores first. Pairs with Hanging Chad.'),
+J('giftcard','Gift Card','Uncommon',6,'Add $1 sell value to all Jokers and Consumables at end of round','economy','Board-wide Egg; pairs with Swashbuckler.'),
+J('turtlebean','Turtle Bean','Uncommon',6,'+5 hand size; reduces by 1 each round','utility','Temporary hand size; great for a tough ante push.'),
+J('erosion','Erosion','Uncommon',6,'+4 Mult for each card below starting deck size','mult','Deck-thinning payoff; pairs with Hanged Man / Glass breaking.'),
+J('reservedparking','Reserved Parking','Common',6,'Each held face card has 1 in 2 chance to give $1','economy,face','Econ trickle; Pareidolia multiplies it.'),
+J('mailinrebate','Mail-In Rebate','Common',4,'Earn $5 per discarded card of the listed rank; rank changes each round','economy','Discard econ; pairs with big discard counts.'),
+J('tothemoon','To the Moon','Uncommon',5,'Earn extra $1 interest per $5 held at end of round','economy','Doubles interest cap value; core econ piece.'),
+J('hallucination','Hallucination','Common',4,'1 in 2 chance to create a Tarot card when any Booster Pack opened','tarot,chance','Tarot stream; fuels Fortune Teller.'),
+J('fortuneteller','Fortune Teller','Common',6,'+1 Mult per Tarot card used this run','mult,scaling,tarot','Tarot-spam payoff; pairs with Hallucination, 8 Ball, Vagabond, Cartomancer.'),
+J('juggler','Juggler','Common',4,'+1 hand size','utility','Simple, always useful.'),
+J('drunkard','Drunkard','Common',4,'+1 discard each round','utility','Simple; feeds Banner and discard engines.'),
+J('stonejoker','Stone Joker','Uncommon',6,'+25 Chips for each Stone card in your full deck','chips,steel','Stone stacking with Marble Joker.'),
+J('goldenjoker','Golden Joker','Common',6,'Earn $4 at end of round','economy','Flat econ; fine early filler.'),
+J('luckycat','Lucky Cat','Uncommon',6,'Gains ×0.25 Mult each time a Lucky card triggers','xmult,scaling,chance','Lucky-card decks; Oops! All 6s doubles trigger odds.'),
+J('baseballcard','Baseball Card','Rare',8,'Uncommon Jokers each give ×1.5 Mult','xmult','Build an all-Uncommon board around it.'),
+J('bull','Bull','Uncommon',6,'+2 Chips per $1 you have','chips,economy','Rich-player chips; pairs with To the Moon hoarding.'),
+J('dietcola','Diet Cola','Uncommon',6,'Sell this card to create a free Double Tag','utility','Tag value; sell before a good shop.'),
+J('tradingcard','Trading Card','Uncommon',6,'If first discard of round has exactly 1 card, destroy it and earn $3','economy,deckmod','Deck thinning + econ in one.'),
+J('flashcard','Flash Card','Uncommon',5,'Gains +2 Mult per shop reroll','mult,scaling','Reroll-heavy play; pairs with Chaos the Clown.'),
+J('popcorn','Popcorn','Common',5,'+20 Mult; loses 4 Mult per round','mult','Tempo buy; strong for ~4 rounds.'),
+J('sparetrousers','Spare Trousers','Uncommon',6,'Gains +2 Mult if played hand contains a Two Pair','mult,scaling','Two Pair spam; pairs with Mad Joker and Clever Joker.'),
+J('ancientjoker','Ancient Joker','Rare',8,'Each played card of the listed suit gives ×1.5 Mult; suit changes each round','xmult,suit','Flush decks that can pivot suits; huge with Smeared.'),
+J('ramen','Ramen','Uncommon',6,'×2 Mult; loses ×0.01 Mult per card discarded','xmult','Discard-light builds keep it strong for ages.'),
+J('walkietalkie','Walkie Talkie','Common',4,'Each played 10 or 4 gives +10 Chips and +4 Mult','rank,chips,mult','10/4 deck warping; good with Straights.'),
+J('seltzer','Seltzer','Uncommon',6,'Retrigger all played cards for the next 10 hands','retrigger','Temporary Hack-for-everything; tempo piece.'),
+J('castle','Castle','Uncommon',6,'Gains +3 Chips per discarded card of the listed suit; suit changes each round','chips,scaling','Discard engine payoff.'),
+J('smileyface','Smiley Face','Common',4,'Played face cards give +5 Mult when scored','mult,face','Face builds; Pareidolia makes it deck-wide.'),
+J('campfire','Campfire','Rare',9,'Gains ×0.25 Mult per card sold; resets when Boss Blind defeated','xmult','Sell-and-rebuy play between bosses.'),
+J('goldenticket','Golden Ticket','Common',5,'Played Gold cards earn $4 when scored','economy','Gold deck payoff; Midas Mask feeds it.'),
+J('mrbones','Mr. Bones','Uncommon',5,'Prevents death if chips scored are at least 25% of required; self-destructs','utility','Insurance policy; saves runs.'),
+J('acrobat','Acrobat','Uncommon',6,'×3 Mult on final hand of round','xmult','Save the real hand for last; pairs with Dusk.'),
+J('sockandbuskin','Sock and Buskin','Uncommon',6,'Retrigger all played face cards','retrigger,face','Face builds; Pareidolia = retrigger everything.'),
+J('swashbuckler','Swashbuckler','Common',4,'Adds sell value of all other owned Jokers to Mult','mult','Egg + Gift Card inflate it.'),
+J('troubadour','Troubadour','Uncommon',6,'+2 hand size; -1 hand per round','utility','Big hands, fewer plays; fits one-big-hand builds.'),
+J('certificate','Certificate','Uncommon',6,'When round begins, add a random playing card with a random seal to your hand','deckmod','Seal generator; feeds Hologram.'),
+J('smeared','Smeared Joker','Uncommon',7,'Hearts and Diamonds count as one suit, Spades and Clubs count as one suit','utility,suit','Flush enabler; doubles every suit joker\\u2019s coverage.'),
+J('throwback','Throwback','Uncommon',6,'×0.25 Mult per Blind skipped this run','xmult','Skip-heavy strategies; pairs with tag hunting.'),
+J('hangingchad','Hanging Chad','Common',4,'Retrigger first played card 2 additional times','retrigger','Put the payload card first; pairs with Photograph and Lucky cards.'),
+J('roughgem','Rough Gem','Uncommon',7,'Played Diamond cards earn $1 when scored','economy,suit','Diamond flush econ.'),
+J('bloodstone','Bloodstone','Uncommon',7,'1 in 2 chance for played Hearts to give ×1.5 Mult','xmult,suit,chance','Heart flushes; Oops! All 6s makes it guaranteed.'),
+J('arrowhead','Arrowhead','Uncommon',7,'Played Spade cards give +50 Chips when scored','chips,suit','Spade flush chips.'),
+J('onyxagate','Onyx Agate','Uncommon',7,'Played Club cards give +7 Mult when scored','mult,suit','Club flush Mult.'),
+J('glassjoker','Glass Joker','Uncommon',6,'Gains ×0.75 Mult per Glass card destroyed','xmult,scaling','Glass deck payoff; broken glass is profit.'),
+J('showman','Showman','Uncommon',5,'Joker, Tarot, Planet and Spectral cards may appear multiple times','utility','Enables duplicate key pieces (two Blueprints, anyone?).'),
+J('flowerpot','Flower Pot','Uncommon',6,'×3 Mult if played hand contains a Diamond, Club, Heart and Spade card','xmult,suit','Rainbow hands; Smeared and wilds make it easy.'),
+J('blueprint','Blueprint','Rare',10,'Copies the ability of the Joker to its right','utility,copy','Best Joker in the game for most builds; copy your biggest ×Mult.'),
+J('weejoker','Wee Joker','Rare',8,'Gains +8 Chips each time a played 2 is scored','chips,scaling,rank','Deuce spam with Hack retriggers scales absurdly.'),
+J('merryandy','Merry Andy','Uncommon',7,'+3 discards each round, -1 hand size','utility','Discard engines; feeds Castle, Mail-In Rebate, Faceless.'),
+J('oops','Oops! All 6s','Uncommon',4,'Doubles all listed probabilities (e.g. 1 in 3 becomes 2 in 3)','chance,utility','Makes Bloodstone, Lucky cards, 8 Ball, Space Joker reliable.'),
+J('theidol','The Idol','Uncommon',6,'Each played card of the listed rank and suit gives ×2 Mult; changes each round','xmult','Deck-thinned single-card decks abuse it with DNA.'),
+J('seeingdouble','Seeing Double','Uncommon',6,'×2 Mult if played hand has a scoring Club and a scoring card of any other suit','xmult,suit','Easy ×2 for Club-inclusive hands; wilds trivialise it.'),
+J('matador','Matador','Uncommon',7,'Earn $8 if played hand triggers the Boss Blind ability','economy','Econ from bosses; situational but fun.'),
+J('hitTheRoad','Hit the Road','Rare',8,'Gains ×0.5 Mult per Jack discarded this round; resets each round','xmult','Jack-hoard discards before the big hand.'),
+J('duo','The Duo','Rare',8,'×2 Mult if played hand contains a Pair','xmult,hand','Trivial condition; premium ×Mult.'),
+J('trio','The Trio','Rare',8,'×3 Mult if played hand contains a Three of a Kind','xmult,hand','Trips builds; pairs with Zany and Wily.'),
+J('family','The Family','Rare',8,'×4 Mult if played hand contains a Four of a Kind','xmult,hand','Quads builds; DNA helps assemble them.'),
+J('order','The Order','Rare',8,'×3 Mult if played hand contains a Straight','xmult,hand','Straight builds with Shortcut/Four Fingers.'),
+J('tribe','The Tribe','Rare',8,'×2 Mult if played hand contains a Flush','xmult,hand','Flush builds; easiest of the ×Mult hand jokers to enable.'),
+J('stuntman','Stuntman','Rare',7,'+250 Chips, -2 hand size','chips','Huge flat chips if you can live with the hand size.'),
+J('invisible','Invisible Joker','Rare',8,'After 2 full rounds, sell this card to duplicate a random owned Joker','utility,copy','Duplicate your Blueprint or legendary.'),
+J('brainstorm','Brainstorm','Rare',10,'Copies the ability of the leftmost Joker','utility,copy','Blueprint\\u2019s twin; double-copy one mega Joker.'),
+J('satellite','Satellite','Uncommon',6,'Earn $1 at end of round per unique Planet card used this run','economy,planet','Econ for Planet-heavy runs; Astronomer shell.'),
+J('shootthemoon','Shoot the Moon','Common',5,'Each Queen held in hand gives +13 Mult','mult,rank','Queen-hold builds; budget Baron.'),
+J('driverslicense','Drivers License','Rare',7,'×3 Mult if you have at least 16 Enhanced cards in your deck','xmult','Enhancement-stacking decks; Tarot spam helps.'),
+J('cartomancer','Cartomancer','Uncommon',6,'Create a Tarot card when Blind selected (if room)','tarot','Steady Tarot stream; Fortune Teller fuel.'),
+J('astronomer','Astronomer','Uncommon',8,'All Planet cards and Celestial Packs in shop are free','planet,economy','Planet spam; Constellation + Satellite shell.'),
+J('burnt','Burnt Joker','Rare',8,'Upgrade the level of the first discarded poker hand each round','planet,utility','Discard your scoring hand shape to level it for free.'),
+J('bootstraps','Bootstraps','Uncommon',7,'+2 Mult per $5 you have','mult,economy','Rich-player Mult; pairs with Bull and To the Moon.'),
+J('canio','Canio','Legendary',0,'Gains ×1 Mult when a face card is destroyed','xmult,legendary','Destroy faces via Glass, Hanged Man, Trading Card; scales hard.'),
+J('triboulet','Triboulet','Legendary',0,'Played Kings and Queens each give ×2 Mult when scored','xmult,legendary','Royal-court decks; absurd with retriggers.'),
+J('yorick','Yorick','Legendary',0,'Gains ×1 Mult every 23 cards discarded','xmult,legendary','Discard engines; slow but unbounded.'),
+J('chicot','Chicot','Legendary',0,'Disables every Boss Blind ability','utility,legendary','Permanent Luchador; removes the run\\u2019s biggest threats.'),
+J('perkeo','Perkeo','Legendary',0,'Creates a Negative copy of a random owned consumable when leaving shop','legendary,tarot','Consumable duplication engine; Fortune Teller goes wild.')
+];
+function J(id,name,rarity,cost,effect,tags,notes){return{id,name,type:'Joker',rarity,cost,effect,tags:tags.split(','),notes,img:''}}
+
+const TAROTS=[
+T('fool','The Fool','Creates a copy of the last Tarot or Planet card used this run (excluding The Fool)','Doubles whatever consumable you just used; chains nicely with Perkeo.'),
+T('magician','The Magician','Enhances 2 selected cards into Lucky cards','Feeds Lucky Cat; Oops! All 6s makes Lucky triggers near-constant.'),
+T('highpriestess','The High Priestess','Creates up to 2 random Planet cards','Hand-level fuel; Constellation loves it.'),
+T('empress','The Empress','Enhances 2 selected cards into Mult cards','Cheap Mult sprinkle on your most-played cards.'),
+T('emperor','The Emperor','Creates up to 2 random Tarot cards','Tarot chaining; Fortune Teller counts every use.'),
+T('hierophant','The Hierophant','Enhances 2 selected cards into Bonus cards','Chip sprinkle; fine filler.'),
+T('lovers','The Lovers','Enhances 1 selected card into a Wild card','Wild cards enable Flush Five-style suit tricks and Flower Pot.'),
+T('chariot','The Chariot','Enhances 1 selected card into a Steel card','Steel a King for Baron builds; Steel Joker counts it.'),
+T('justice','Justice','Enhances 1 selected card into a Glass card','×2 Mult per scoring; breakage feeds Glass Joker and Erosion.'),
+T('hermit','The Hermit','Doubles your money (max +$20)','Best used at exactly $20; core econ Tarot.'),
+T('wheel','The Wheel of Fortune','1 in 4 chance to add Foil, Holographic, or Polychrome edition to a random Joker','Gamble for Polychrome on a key Joker; Oops! helps the odds.'),
+T('strength','Strength','Raises the rank of up to 2 selected cards by 1','Build quads/court cards; turn Queens into Kings for Baron.'),
+T('hangedman','The Hanged Man','Destroys up to 2 selected cards','Deck thinning; feeds Erosion and consistency.'),
+T('death','Death','Converts the left selected card into a copy of the right','Stack duplicates for Flush Five / quads; deck sculpting.'),
+T('temperance','Temperance','Gives the total sell value of all owned Jokers (max $50)','Cash out a full board\u2019s value without selling.'),
+T('devil','The Devil','Enhances 1 selected card into a Gold card','Gold econ; Golden Ticket payoff.'),
+T('tower','The Tower','Enhances 1 selected card into a Stone card','Flat +50 chips every play; Stone Joker counts it.'),
+T('star','The Star','Converts up to 3 selected cards to Diamonds','Flush sculpting; pairs with Greedy/Rough Gem.'),
+T('moon','The Moon','Converts up to 3 selected cards to Clubs','Flush sculpting; pairs with Onyx Agate/Seeing Double.'),
+T('sun','The Sun','Converts up to 3 selected cards to Hearts','Flush sculpting; pairs with Lusty/Bloodstone.'),
+T('judgement','Judgement','Creates a random Joker (if room)','Free Joker lottery; fodder for Dagger/Madness if bad.'),
+T('world','The World','Converts up to 3 selected cards to Spades','Flush sculpting; pairs with Wrathful/Arrowhead.')
+];
+function T(id,name,effect,notes){return{id,name,type:'Tarot',rarity:'Tarot',cost:3,effect,tags:['tarot'],notes,img:''}}
+
+const PLANETS=[
+P('pluto','Pluto','High Card','+1 Mult, +10 Chips per level'),
+P('mercury','Mercury','Pair','+1 Mult, +15 Chips per level'),
+P('uranus','Uranus','Two Pair','+1 Mult, +20 Chips per level'),
+P('venus','Venus','Three of a Kind','+2 Mult, +20 Chips per level'),
+P('saturn','Saturn','Straight','+3 Mult, +30 Chips per level'),
+P('jupiter','Jupiter','Flush','+2 Mult, +15 Chips per level'),
+P('earth','Earth','Full House','+2 Mult, +25 Chips per level'),
+P('mars','Mars','Four of a Kind','+3 Mult, +30 Chips per level'),
+P('neptune','Neptune','Straight Flush','+4 Mult, +40 Chips per level'),
+P('planetx','Planet X','Five of a Kind','+3 Mult, +35 Chips per level'),
+P('ceres','Ceres','Flush House','+4 Mult, +40 Chips per level'),
+P('eris','Eris','Flush Five','+3 Mult, +50 Chips per level')
+];
+function P(id,name,hand,per){return{id,name,type:'Planet',rarity:'Planet',cost:3,effect:'Levels up '+hand+' ('+per+')',hand,tags:['planet'],notes:'Stack levels on your one main hand type \u2014 levels are the quiet backbone of every big run.',img:''}}
+
+const SPECTRALS=[
+S('familiar','Familiar','Destroys 1 random held card; adds 3 random Enhanced face cards to hand','Face-build fuel; feeds Drivers License enhancement count.'),
+S('grim','Grim','Destroys 1 random held card; adds 2 random Enhanced Aces to hand','Ace builds; Scholar payoff.'),
+S('incantation','Incantation','Destroys 1 random held card; adds 4 random Enhanced numbered cards to hand','Bulk enhancement; Drivers License fuel.'),
+S('talisman','Talisman','Adds a Gold Seal to 1 selected card','Gold Seal = $3 every time it scores.'),
+S('aura','Aura','Adds Foil, Holographic, or Polychrome to 1 selected held card','Edition on a key playing card.'),
+S('wraith','Wraith','Creates a random Rare Joker; sets money to $0','Gamble hard; best when already broke (Vagabond agrees).'),
+S('sigil','Sigil','Converts all held cards to a single random suit','Instant flush hand; chaotic.'),
+S('ouija','Ouija','Converts all held cards to a single random rank; -1 hand size','Instant quads/Five of a Kind material.'),
+S('ectoplasm','Ectoplasm','Adds Negative to a random Joker; -1 hand size (stacks)','Negative = free Joker slot; hand size is the price.'),
+S('immolate','Immolate','Destroys 5 random held cards; gain $20','Aggressive thinning plus econ.'),
+S('ankh','Ankh','Creates a copy of a random owned Joker, destroys the others','High-stakes consolidation; pray it copies the right one.'),
+S('dejavu','Deja Vu','Adds a Red Seal to 1 selected card','Red Seal = retrigger; put it on a Steel King for Baron/Mime.'),
+S('hex','Hex','Adds Polychrome to a random Joker, destroys the others','All-in on one Joker; \u00d71.5 Mult edition.'),
+S('trance','Trance','Adds a Blue Seal to 1 selected card','Blue Seal = creates the Planet of the played hand when held.'),
+S('medium','Medium','Adds a Purple Seal to 1 selected card','Purple Seal = creates a Tarot when discarded; Fortune Teller fuel.'),
+S('cryptid','Cryptid','Creates 2 exact copies of 1 selected card','Duplicate your perfect card (Red-Seal Steel King, say).'),
+S('soul','The Soul','Creates a Legendary Joker','The only normal source of Legendaries. Always take it.'),
+S('blackhole','Black Hole','Upgrades every poker hand by 1 level','Universal levels; always strong.')
+];
+function S(id,name,effect,notes){return{id,name,type:'Spectral',rarity:'Spectral',cost:4,effect,tags:['spectral'],notes,img:''}}
+
+const DECKS=[
+D('red','Red Deck','+1 discard every round','The baseline-plus deck; discards are quietly one of the best resources.'),
+D('blue','Blue Deck','+1 hand every round','More plays per round; good for scaling jokers like Green Joker.'),
+D('yellow','Yellow Deck','Start with an extra $10','Early shop tempo; hit interest cap faster.'),
+D('green','Green Deck','$2 per remaining hand, $1 per remaining discard at end of round; no interest','Play fewer hands, get paid; changes econ maths completely.'),
+D('black','Black Deck','+1 Joker slot, -1 hand every round','Five-joker boards; strong with Abstract and Stencil-less builds.'),
+D('magic','Magic Deck','Start with Crystal Ball voucher and 2 copies of The Fool','Tarot-chaining start; Fortune Teller opener.'),
+D('nebula','Nebula Deck','Start with Telescope voucher; -1 consumable slot','Planet-focused; Constellation/Astronomer shell.'),
+D('ghost','Ghost Deck','Spectral cards appear in shop; start with a Hex','Spectral access all run; high variance, high ceiling.'),
+D('abandoned','Abandoned Deck','Start with no face cards in deck','40-card deck = more consistency; Ride the Bus never resets.'),
+D('checkered','Checkered Deck','Start with 26 Spades and 26 Hearts','Flushes from turn one; Blackboard or Bloodstone builds.'),
+D('zodiac','Zodiac Deck','Start with Tarot Merchant, Planet Merchant, and Overstock vouchers','Consumable-rich shops from ante 1.'),
+D('painted','Painted Deck','+2 hand size, -1 Joker slot','Bigger hands, fewer jokers; pairs with strong single-joker engines.'),
+D('anaglyph','Anaglyph Deck','Gain a Double Tag after each Boss Blind','Tag economy; compounds across the run.'),
+D('plasma','Plasma Deck','Chips and Mult are averaged together; ×2 base Blind size','Balance chips and mult evenly; flat bonuses get much stronger.'),
+D('erratic','Erratic Deck','All ranks and suits in starting deck are randomized','Chaos seed; scout your deck and adapt the build to it.')
+];
+function D(id,name,effect,notes){return{id,name,type:'Deck',rarity:'Deck',cost:0,effect,tags:['deck'],notes,img:''}}
+
+const SYNERGIES=[
+Y('Baron Kings','S',['baron','mime','dna','cryptid'],'Hold Steel Kings in hand: Baron gives \u00d71.5 Mult per King, Mime retriggers held-in-hand abilities so each Steel King and Baron trigger doubles. DNA/Cryptid duplicate the perfect Red-Seal Steel King. Play junk, hold royalty.'),
+Y('Blueprint Stack','S',['blueprint','brainstorm','invisible','showman'],'Blueprint copies the Joker to its right, Brainstorm copies the leftmost. Point both at your biggest \u00d7Mult and it triple-fires. Invisible Joker or Showman can get you a second copy of the copier itself.'),
+Y('Lucky Charms','A',['luckycat','oops','magician','hangingchad'],'The Magician makes Lucky cards, Oops! All 6s doubles their trigger odds, Lucky Cat gains \u00d70.25 Mult per trigger, and Hanging Chad retriggers the first card for extra rolls. Compounds all run.'),
+Y('Tarot Engine','A',['fortuneteller','hallucination','cartomancer','vagabond','eightball'],'Fortune Teller gains +1 Mult per Tarot used \u2014 ever. Hallucination, Cartomancer, Vagabond and 8 Ball keep the Tarots flowing. Perkeo turns it nuclear.'),
+Y('Planet Lab','A',['constellation','astronomer','satellite','spacejoker'],'Astronomer makes Planets free, Constellation gains \u00d70.1 Mult per Planet used, Satellite pays you for unique Planets, Space Joker levels hands for free. Pick one hand type and send it to space.'),
+Y('Face Value','A',['pareidolia','sockandbuskin','photograph','smileyface','scaryface'],'Pareidolia makes every card a face card. Sock and Buskin retriggers them all, Photograph doubles the first, Smiley and Scary Face pay per face. The whole deck becomes the engine.'),
+Y('Four-Card Straights','B',['fourfingers','shortcut','crazy','order','runner'],'Four Fingers lets 4 cards make a Straight, Shortcut allows rank gaps. Suddenly half your draws are Straights for Crazy Joker, The Order and Runner to feast on.'),
+Y('Glass Cannon','B',['glassjoker','justice','erosion','canio'],'Justice makes Glass cards (\u00d72 Mult each, chance to shatter). Glass Joker gains \u00d70.75 Mult per break, Erosion pays for the thinner deck, and Canio scales if the broken cards were faces.'),
+Y('Discard Inc.','B',['castle','mailinrebate','faceless','hitTheRoad','yorick','merryandy'],'Merry Andy funds the habit; Castle, Mail-In Rebate and Faceless pay per discard; Hit the Road and Yorick turn discards into \u00d7Mult. Banner need not apply.'),
+Y('Wee Deuces','B',['weejoker','hack','hangingchad','dusk'],'Wee Joker gains +8 Chips per scored 2; Hack, Hanging Chad and Dusk retrigger those 2s. A deck full of deuces becomes a chip avalanche.'),
+Y('Stencil Solo','B',['stencil','blueprint'],'Joker Stencil gives \u00d71 Mult per empty slot. Run Stencil + Blueprint + one monster and keep three slots empty: Blueprint copies Stencil for double the multiplier.'),
+Y('Gold Rush','C',['midasmask','goldenticket','vampire','pareidolia'],'Midas Mask turns scored faces to Gold, Golden Ticket pays $4 per Gold scored, Pareidolia makes everything a face \u2014 or let Vampire eat the Gold for permanent \u00d7Mult instead. Pick a lane.')
+];
+function Y(name,tier,ids,desc){return{name,tier,ids,desc}}
+
+// ---------- original stand-in art (emoji glyphs + CSS planets) ----------
+const GLYPH={
+joker:'🤡',greedy:'♦️',lusty:'♥️',wrathful:'♠️',gluttonous:'♣️',jolly:'😂',zany:'🤪',mad:'😡',crazy:'🤯',droll:'😏',
+sly:'😼',wily:'🦊',clever:'💡',devious:'😈',crafty:'🧰',half:'🌗',stencil:'🖼️',fourfingers:'🖖',mime:'🎭',creditcard:'💳',
+dagger:'🗡️',banner:'🚩',mysticsummit:'🏔️',marble:'⚪',loyalty:'🎟️',eightball:'🎱',misprint:'❓',dusk:'🌆',raisedfist:'✊',
+chaos:'🎪',fibonacci:'🐚',steeljoker:'⚙️',scaryface:'👺',abstract:'🎨',gratification:'⏳',hack:'🔁',pareidolia:'👁️',
+grosmichel:'🍌',evensteven:'🔢',oddtodd:'3️⃣',scholar:'🎓',businesscard:'💼',supernova:'💥',ridethebus:'🚌',spacejoker:'👾',
+egg:'🥚',burglar:'🥷',blackboard:'⬛',runner:'🏃',icecream:'🍦',dna:'🧬',splash:'💦',bluejoker:'🔵',sixthsense:'🧿',
+constellation:'✨',hiker:'🥾',faceless:'😶',greenjoker:'🟢',superposition:'⚛️',todolist:'📝',cavendish:'🍌',cardsharp:'🦈',
+redcard:'🟥',madness:'🌀',squarejoker:'🔲',seance:'🕯️',riffraff:'👥',vampire:'🧛',shortcut:'🛣️',hologram:'💠',
+vagabond:'🚶',baron:'👑',cloud9:'☁️',rocket:'🚀',obelisk:'🗼',midasmask:'🥇',luchador:'🤼',photograph:'📷',giftcard:'🎁',
+turtlebean:'🐢',erosion:'🏜️',reservedparking:'🅿️',mailinrebate:'📬',tothemoon:'🌙',hallucination:'🍄',fortuneteller:'🔮',
+juggler:'🤹',drunkard:'🍺',stonejoker:'🪨',goldenjoker:'🪙',luckycat:'🐱',baseballcard:'⚾',bull:'🐂',dietcola:'🥤',
+tradingcard:'🃏',flashcard:'📇',popcorn:'🍿',sparetrousers:'👖',ancientjoker:'🏺',ramen:'🍜',walkietalkie:'📻',seltzer:'🫧',
+castle:'🏰',smileyface:'😀',campfire:'🔥',goldenticket:'🎫',mrbones:'🦴',acrobat:'🤸',sockandbuskin:'🧦',swashbuckler:'🏴‍☠️',
+troubadour:'🎸',certificate:'📜',smeared:'🖌️',throwback:'⏪',hangingchad:'🗳️',roughgem:'💎',bloodstone:'🩸',arrowhead:'🏹',
+onyxagate:'⚫',glassjoker:'🪟',showman:'🎩',flowerpot:'🪴',blueprint:'📐',weejoker:'🤏',merryandy:'🎈',oops:'🎰',
+theidol:'🗿',seeingdouble:'👯',matador:'⚔️',hitTheRoad:'🛞',duo:'✌️',trio:'🤟',family:'👨‍👩‍👧‍👦',order:'🪜',tribe:'🌊',
+stuntman:'🏍️',invisible:'🫥',brainstorm:'🧠',satellite:'🛰️',shootthemoon:'🌕',driverslicense:'🪪',cartomancer:'🎴',
+astronomer:'🔭',burnt:'♨️',bootstraps:'👢',canio:'😢',triboulet:'🤴',yorick:'💀',chicot:'🛡️',perkeo:'🍷',
+// tarots
+fool:'🌼',magician:'🪄',highpriestess:'📿',empress:'👸',emperor:'👑',hierophant:'⛪',lovers:'💞',chariot:'🛞',
+justice:'⚖️',hermit:'🏮',wheel:'🎡',strength:'🦁',hangedman:'🙃',death:'☠️',temperance:'⚗️',devil:'😈',tower:'⚡',
+star:'⭐',moon:'🌙',sun:'☀️',judgement:'📯',world:'🌍',
+// spectrals
+familiar:'🦇',grim:'⚰️',incantation:'📖',talisman:'🪬',aura:'🌈',wraith:'👻',sigil:'🔯',ouija:'🔡',ectoplasm:'🫠',
+immolate:'🧨',ankh:'☥',dejavu:'🔴',hex:'🕸️',trance:'💙',medium:'💜',cryptid:'🐾',soul:'💫',blackhole:'🕳️',
+// decks
+red:'🔴',blue:'🔵',yellow:'🟡',green:'🟢',black:'⚫',magic:'🪄',nebula:'🌌',ghost:'👻',abandoned:'🏚️',
+checkered:'🏁',zodiac:'✴️',painted:'🎨',anaglyph:'🥽',plasma:'🔆',erratic:'🎲',
+// tags
+tg_uncommon:'🟩',tg_rare:'🟥',tg_negative:'🌑',tg_foil:'🥈',tg_holographic:'💿',tg_polychrome:'🌈',tg_investment:'💰',
+tg_voucher:'🎟️',tg_boss:'👿',tg_standard:'🃏',tg_charm:'🔮',tg_meteor:'☄️',tg_buffoon:'🤡',tg_handy:'✋',
+tg_garbage:'🗑️',tg_ethereal:'👻',tg_coupon:'🏷️',tg_double:'♊',tg_juggle:'🤹',tg_d6:'🎲',tg_topup:'⬆️',
+tg_speed:'⏩',tg_orbital:'🪐',tg_economy:'💵',
+// seals / stakes / stickers / enhancements / vouchers / blinds / booster packs
+seal_red:'🔴',seal_blue:'🔵',seal_gold:'🟡',seal_purple:'🟣',
+stake_white:'⚪',stake_red:'🔴',stake_green:'🟢',stake_black:'⚫',stake_blue:'🔵',stake_purple:'🟣',stake_orange:'🟠',stake_gold:'🟡',
+stk_eternal:'♾️',stk_perishable:'⏳',stk_rental:'🏷️',stk_white:'⚪',stk_red:'🔴',stk_green:'🟢',stk_black:'⚫',stk_blue:'🔵',stk_purple:'🟣',stk_orange:'🟠',stk_gold:'🟡',
+enh_bonus:'➕',enh_mult:'✖️',enh_wild:'🃏',enh_glass:'🪟',enh_steel:'⚙️',enh_stone:'🪨',enh_gold:'🪙',enh_lucky:'🍀',
+v_overstock:'🛒',v_overstock_plus:'🛒',v_clearance:'🏷️',v_liquidation:'🏷️',v_hone:'✨',v_glowup:'✨',v_reroll_surplus:'🔄',v_reroll_glut:'🔄',v_crystal_ball:'🔮',v_omen_globe:'🔮',v_telescope:'🔭',v_observatory:'🔭',v_grabber:'✋',v_nacho_tong:'✋',v_wasteful:'🗑️',v_recyclomancy:'♻️',v_seed_money:'🌱',v_money_tree:'🌳',v_blank:'⬜',v_antimatter:'⚛️',v_magic_trick:'🎩',v_illusion:'🪞',v_hieroglyph:'📜',v_petroglyph:'🗿',v_directors_cut:'🎬',v_retcon:'🎬',v_paint_brush:'🖌️',v_palette:'🎨',v_tarot_merchant:'🎴',v_tarot_tycoon:'🎴',v_planet_merchant:'🪐',v_planet_tycoon:'🪐',
+blind_small:'🔵',blind_big:'🟠',blind_hook:'🪝',blind_ox:'🐂',blind_house:'🏠',blind_wall:'🧱',blind_wheel:'🎡',blind_arm:'💪',blind_club:'♣️',blind_fish:'🐟',blind_psychic:'🔮',blind_goad:'♠️',blind_water:'💧',blind_window:'🪟',blind_manacle:'⛓️',blind_eye:'👁️',blind_mouth:'👄',blind_plant:'🌱',blind_serpent:'🐍',blind_pillar:'🏛️',blind_needle:'📍',blind_head:'🗣️',blind_tooth:'🦷',blind_flint:'🔥',blind_mark:'🎯',blind_amber_acorn:'🌰',blind_verdant_leaf:'🍃',blind_violet_vessel:'🏺',blind_crimson_heart:'❤️',blind_cerulean_bell:'🔔',
+pack_arcana:'🔮',pack_jumbo_arcana:'🔮',pack_mega_arcana:'🔮',pack_celestial:'🪐',pack_jumbo_celestial:'🪐',pack_mega_celestial:'🪐',pack_standard:'🃏',pack_jumbo_standard:'🃏',pack_mega_standard:'🃏',pack_buffoon:'🤡',pack_jumbo_buffoon:'🤡',pack_mega_buffoon:'🤡',pack_spectral:'👻',pack_jumbo_spectral:'👻',pack_mega_spectral:'👻'
+};
+const PLANET_COLOR={pluto:'#b8a6d9',mercury:'#c9c9c9',uranus:'#7fd7e8',venus:'#f2c14e',saturn:'#e8c87f',
+jupiter:'#e8a06b',earth:'#5fa8e8',mars:'#e85f4f',neptune:'#4f6fe8',planetx:'#5a5a6e',ceres:'#b0b8a0',eris:'#e8e2d4'};
+
+const TAGS=[
+G('tg_uncommon','Uncommon Tag','Next shop has a free Uncommon Joker','Skip value depends on shop luck; decent early.'),
+G('tg_rare','Rare Tag','Next shop has a free Rare Joker','One of the best skip rewards in the game.'),
+G('tg_negative','Negative Tag','Next base-edition Joker in shop is free and becomes Negative','Free Joker slot — premium tag, almost always take it.'),
+G('tg_foil','Foil Tag','Next base-edition Joker in shop is free and becomes Foil','Foil = +50 Chips on the Joker.'),
+G('tg_holographic','Holographic Tag','Next base-edition Joker in shop is free and becomes Holographic','Holo = +10 Mult on the Joker.'),
+G('tg_polychrome','Polychrome Tag','Next base-edition Joker in shop is free and becomes Polychrome','Polychrome = ×1.5 Mult; top-tier tag.'),
+G('tg_investment','Investment Tag','Gain $25 after defeating the next Boss Blind','Delayed but big econ; pairs with interest play.'),
+G('tg_voucher','Voucher Tag','Adds a Voucher to the next shop','Extra voucher access; good when chasing Telescope etc.'),
+G('tg_boss','Boss Tag','Rerolls the next Boss Blind','Dodge a run-killing boss like The Needle.'),
+G('tg_standard','Standard Tag','Open a free Mega Standard Pack','Playing-card injection; feeds Hologram.'),
+G('tg_charm','Charm Tag','Open a free Mega Arcana Pack','Tarot value; Fortune Teller fuel.'),
+G('tg_meteor','Meteor Tag','Open a free Mega Celestial Pack','Hand levels; Constellation fuel.'),
+G('tg_buffoon','Buffoon Tag','Open a free Mega Buffoon Pack','Joker options without shop cost.'),
+G('tg_handy','Handy Tag','Gain $1 per hand played this run','Scales with run length; fine mid-run.'),
+G('tg_garbage','Garbage Tag','Gain $1 per unused discard this run','Pays out for discard-light play.'),
+G('tg_ethereal','Ethereal Tag','Open a free Spectral Pack','Spectral access outside Ghost Deck — can be run-defining.'),
+G('tg_coupon','Coupon Tag','Initial cards and packs in next shop are free','Free shopping spree; strong with big shops.'),
+G('tg_double','Double Tag','Copies the next Tag you select (excluding Double Tags)','Pair it with Negative/Polychrome for double premium.'),
+G('tg_juggle','Juggle Tag','+3 hand size next round','Tempo for a hard blind.'),
+G('tg_d6','D6 Tag','Rerolls in the next shop start at $0','Reroll spree; Flash Card loves it.'),
+G('tg_topup','Top-up Tag','Create up to 2 Common Jokers (if room)','Board filler; Dagger/Madness fodder.'),
+G('tg_speed','Speed Tag','Gain $5 per Blind skipped this run','Skip-chain econ; pairs with Throwback.'),
+G('tg_orbital','Orbital Tag','Upgrade a random poker hand by 3 levels','Roughly three free Planets; great in single-hand builds.'),
+G('tg_economy','Economy Tag','Doubles your money (max +$40)','Best taken at exactly $40.')
+];
+function G(id,name,effect,notes){return{id,name,type:'Tag',rarity:'Tag',cost:0,effect,tags:['tag','skip'],notes,img:''}}
+
+// ============================================================
+// ===== EXTRA CATEGORIES (seals, stakes, stickers, enhancements,
+// =====  vouchers, blinds, booster packs) ====================
+// Same shape as the cards above; auto-art via art/<id>.png.
+// Blinds use animated GIFs, so each sets an explicit img field.
+// ============================================================
+
+const SEALS=[
+Se('seal_red','Red Seal','Retriggers this card 1 additional time when scored or held','Doubles a single card\'s contribution; pair with Steel Kings or Glass.'),
+Se('seal_blue','Blue Seal','Creates a Planet card for the last played poker hand if held at end of round','Free Planet levels; needs the card kept in hand, not played.'),
+Se('seal_gold','Gold Seal','Earns $3 each time this card is played and scored','Stacks across a flush; econ on your most-played cards.'),
+Se('seal_purple','Purple Seal','Creates a Tarot card when this card is discarded','Tarot fuel for discard decks; feeds Fortune Teller.')
+];
+function Se(id,name,effect,notes,img){return{id,name,type:'Seal',rarity:'Seal',cost:0,effect,tags:['seal'],notes,img:img||''}}
+
+const STAKES=[
+Sta('stake_white','White Stake','Base difficulty','The starting stake; all later stakes stack on top of it.'),
+Sta('stake_red','Red Stake','Small Blind gives no reward money','Rewards aggression; you must clear blinds, not skip-farm them.'),
+Sta('stake_green','Green Stake','Required score scales faster per ante','Tighter scaling math; build your engine sooner.'),
+Sta('stake_black','Black Stake','Shop can have Eternal Jokers (cannot be sold or destroyed)','Plan around Jokers you can\'t remove later.'),
+Sta('stake_blue','Blue Stake','-1 discard each round','Discard-hungry builds suffer; lean on hands instead.'),
+Sta('stake_purple','Purple Stake','Required score scales even faster per ante','Compounds the Green Stake scaling; speed is everything.'),
+Sta('stake_orange','Orange Stake','Shop can have Perishable Jokers (debuffed after 5 rounds)','Treat some Jokers as temporary; sell before they expire.'),
+Sta('stake_gold','Gold Stake','Shop can have Rental Jokers ($1 cost, -$3 each round)','The hardest stake; rentals bleed money every round.')
+];
+function Sta(id,name,effect,notes,img){return{id,name,type:'Stake',rarity:'Stake',cost:0,effect,tags:['stake'],notes,img:img||''}}
+
+const STICKERS=[
+Sti('stk_eternal','Eternal Sticker','Joker cannot be sold or destroyed','Appears from Black Stake; commit to the board you build.'),
+Sti('stk_perishable','Perishable Sticker','Joker is debuffed after 5 rounds','From Orange Stake; sell it before the timer runs out.'),
+Sti('stk_rental','Rental Sticker','Joker costs $1 but loses $3 at end of each round','From Gold Stake; a constant money drain.'),
+Sti('stk_white','White Sticker','Marks a deck win on White Stake','Completion sticker shown on the deck select screen.'),
+Sti('stk_red','Red Sticker','Marks a deck win on Red Stake','Completion sticker for clearing Red Stake.'),
+Sti('stk_green','Green Sticker','Marks a deck win on Green Stake','Completion sticker for clearing Green Stake.'),
+Sti('stk_black','Black Sticker','Marks a deck win on Black Stake','Completion sticker for clearing Black Stake.'),
+Sti('stk_blue','Blue Sticker','Marks a deck win on Blue Stake','Completion sticker for clearing Blue Stake.'),
+Sti('stk_purple','Purple Sticker','Marks a deck win on Purple Stake','Completion sticker for clearing Purple Stake.'),
+Sti('stk_orange','Orange Sticker','Marks a deck win on Orange Stake','Completion sticker for clearing Orange Stake.'),
+Sti('stk_gold','Gold Sticker','Marks a deck win on Gold Stake','Completion sticker for the hardest stake.')
+];
+function Sti(id,name,effect,notes,img){return{id,name,type:'Sticker',rarity:'Sticker',cost:0,effect,tags:['sticker'],notes,img:img||''}}
+
+const ENHANCEMENTS=[
+En('enh_bonus','Bonus Card','+30 Chips when scored','Flat chip boost; cheap consistency from The Hierophant.'),
+En('enh_mult','Mult Card','+4 Mult when scored','Flat mult boost; from The Empress.'),
+En('enh_wild','Wild Card','Counts as every suit','Flush/suit-joker enabler; from The Lovers.'),
+En('enh_glass','Glass Card','x2 Mult when scored; 1 in 4 chance to destroy itself','High risk/reward; feeds Glass Joker. From Justice.'),
+En('enh_steel','Steel Card','x1.5 Mult while held in hand','Baron/Mime builds; from The Chariot.'),
+En('enh_stone','Stone Card','+50 Chips; has no rank or suit','Always scores; pairs with Stone Joker.'),
+En('enh_gold','Gold Card','Earns $3 if held in hand at end of round','Econ engine; Midas Mask creates these.'),
+En('enh_lucky','Lucky Card','1 in 5 for +20 Mult, 1 in 15 for $20 when scored','Feeds Lucky Cat; doubled by Oops! All 6s. From The Magician.')
+];
+function En(id,name,effect,notes,img){return{id,name,type:'Enhancement',rarity:'Enhancement',cost:0,effect,tags:['enhancement'],notes,img:img||''}}
+
+const VOUCHERS=[
+Vo('v_overstock','Overstock','+1 card slot in shop (3 total)','More choices per shop; pairs with reroll vouchers.'),
+Vo('v_overstock_plus','Overstock Plus','+1 card slot in shop (4 total)','Upgrade of Overstock; wide shops.'),
+Vo('v_clearance','Clearance Sale','All cards and packs in shop are 25% off','Flat discount; tempo econ.'),
+Vo('v_liquidation','Liquidation','All cards and packs in shop are 50% off','Upgrade of Clearance Sale; huge savings.'),
+Vo('v_hone','Hone','Foil, Holographic and Polychrome cards appear 2x as often','Edition farming; pairs with Showman.'),
+Vo('v_glowup','Glow Up','Foil, Holographic and Polychrome cards appear 4x as often','Upgrade of Hone; edition-stacking decks.'),
+Vo('v_reroll_surplus','Reroll Surplus','Rerolls cost $2 less','Reroll-heavy shopping for specific Jokers.'),
+Vo('v_reroll_glut','Reroll Glut','Rerolls cost an additional $2 less','Upgrade of Reroll Surplus; cheap infinite rerolls.'),
+Vo('v_crystal_ball','Crystal Ball','+1 consumable slot','Hold more Tarots/Planets/Spectrals.'),
+Vo('v_omen_globe','Omen Globe','Spectral cards may appear in Arcana Packs','Upgrade of Crystal Ball; Spectral access.'),
+Vo('v_telescope','Telescope','Celestial Packs always contain the Planet for your most-played hand','Reliable hand leveling.'),
+Vo('v_observatory','Observatory','Planet cards in your consumable slots give x1.5 Mult for their hand','Upgrade of Telescope; held Planets become mult.'),
+Vo('v_grabber','Grabber','+1 hand per round','More plays each round.'),
+Vo('v_nacho_tong','Nacho Tong','+1 additional hand per round','Upgrade of Grabber.'),
+Vo('v_wasteful','Wasteful','+1 discard per round','More discards each round.'),
+Vo('v_recyclomancy','Recyclomancy','+1 additional discard per round','Upgrade of Wasteful.'),
+Vo('v_seed_money','Seed Money','Raises interest cap to $10 per round','Bigger interest engine.'),
+Vo('v_money_tree','Money Tree','Raises interest cap to $20 per round','Upgrade of Seed Money; huge passive econ.'),
+Vo('v_blank','Blank','Does nothing','Placeholder voucher; unlocks Antimatter.'),
+Vo('v_antimatter','Antimatter','+1 Joker slot','Upgrade of Blank; a sixth Joker slot.'),
+Vo('v_magic_trick','Magic Trick','Playing cards can be purchased from the shop','Buy specific cards directly.'),
+Vo('v_illusion','Illusion','Playing cards in shop may have an Enhancement, Edition and Seal','Upgrade of Magic Trick; loaded singles.'),
+Vo('v_hieroglyph','Hieroglyph','-1 Ante, but -1 hand per round','Buys time at a cost; scaling tool.'),
+Vo('v_petroglyph','Petroglyph','-1 Ante, but -1 discard per round','Upgrade of Hieroglyph.'),
+Vo('v_directors_cut','Director\'s Cut','Reroll the Boss Blind once per ante ($10)','Dodge bad bosses.'),
+Vo('v_retcon','Retcon','Reroll the Boss Blind unlimited times ($10 each)','Upgrade of Director\'s Cut; pick your boss.'),
+Vo('v_paint_brush','Paint Brush','+1 hand size','Bigger hands.'),
+Vo('v_palette','Palette','+1 additional hand size','Upgrade of Paint Brush.'),
+Vo('v_tarot_merchant','Tarot Merchant','Tarot cards appear 2x as often in shop','Tarot access.'),
+Vo('v_tarot_tycoon','Tarot Tycoon','Tarot cards appear 4x as often in shop','Upgrade of Tarot Merchant.'),
+Vo('v_planet_merchant','Planet Merchant','Planet cards appear 2x as often in shop','Planet access.'),
+Vo('v_planet_tycoon','Planet Tycoon','Planet cards appear 4x as often in shop','Upgrade of Planet Merchant.')
+];
+function Vo(id,name,effect,notes,img){return{id,name,type:'Voucher',rarity:'Voucher',cost:0,effect,tags:['voucher'],notes,img:img||''}}
+
+const BLINDS=[
+Bl('blind_small','Small Blind','Base score requirement; can be skipped for a tag','No special effect; skip for tag value.','art/blind_small.gif'),
+Bl('blind_big','Big Blind','Larger score requirement; can be skipped for a tag','No special effect; skip for tag value.','art/blind_big.gif'),
+Bl('blind_hook','The Hook','Discards 2 random cards per hand played','Plan for card loss; discard-resistant builds.','art/blind_hook.gif'),
+Bl('blind_ox','The Ox','Playing your most-played hand sets money to $0','Switch hands or eat the loss.','art/blind_ox.gif'),
+Bl('blind_house','The House','First hand is drawn face down','Memory/blind play; affects scouting.','art/blind_house.gif'),
+Bl('blind_wall','The Wall','Extra large blind (x2 required score)','Pure score check; need raw power.','art/blind_wall.gif'),
+Bl('blind_wheel','The Wheel','1 in 7 cards drawn face down each hand','Variance on visibility.','art/blind_wheel.gif'),
+Bl('blind_arm','The Arm','Decrease level of played poker hand by 1','Pre-level your hand to absorb it.','art/blind_arm.gif'),
+Bl('blind_club','The Club','All Club cards are debuffed','Avoid Clubs this round.','art/blind_club.gif'),
+Bl('blind_fish','The Fish','Cards drawn face down after each hand played','Compounding blindness.','art/blind_fish.gif'),
+Bl('blind_psychic','The Psychic','Must play 5 cards each hand','Forces full hands; no small plays.','art/blind_psychic.gif'),
+Bl('blind_goad','The Goad','All Spade cards are debuffed','Avoid Spades this round.','art/blind_goad.gif'),
+Bl('blind_water','The Water','Start with 0 discards','No discards all blind.','art/blind_water.gif'),
+Bl('blind_window','The Window','All Diamond cards are debuffed','Avoid Diamonds this round.','art/blind_window.gif'),
+Bl('blind_manacle','The Manacle','-1 hand size','Smaller hands for the round.','art/blind_manacle.gif'),
+Bl('blind_eye','The Eye','No repeat hand types this round','Forces hand variety.','art/blind_eye.gif'),
+Bl('blind_mouth','The Mouth','Only one hand type can be played this round','Lock into your best hand.','art/blind_mouth.gif'),
+Bl('blind_plant','The Plant','All face cards are debuffed','Face builds suffer.','art/blind_plant.gif'),
+Bl('blind_serpent','The Serpent','Always draws 3 cards after play/discard','Fixed draw count.','art/blind_serpent.gif'),
+Bl('blind_pillar','The Pillar','Cards played previously this ante are debuffed','Diversify across the ante.','art/blind_pillar.gif'),
+Bl('blind_needle','The Needle','Play only one hand for the whole blind','One hand to clear it all.','art/blind_needle.gif'),
+Bl('blind_head','The Head','All Heart cards are debuffed','Avoid Hearts this round.','art/blind_head.gif'),
+Bl('blind_tooth','The Tooth','Lose $1 per card played','Econ pressure; play efficiently.','art/blind_tooth.gif'),
+Bl('blind_flint','The Flint','Base Chips and Mult are halved','Halves your scoring; raw power needed.','art/blind_flint.gif'),
+Bl('blind_mark','The Mark','All face cards are drawn face down','Face-card blind play.','art/blind_mark.gif'),
+Bl('blind_amber_acorn','Amber Acorn','Flips and shuffles all Joker cards (Ante 8 finisher)','Orange finisher; Joker order chaos.','art/blind_amber_acorn.gif'),
+Bl('blind_verdant_leaf','Verdant Leaf','All cards debuffed until a Joker is sold (Ante 8 finisher)','Green finisher; forces a Joker sacrifice.','art/blind_verdant_leaf.gif'),
+Bl('blind_violet_vessel','Violet Vessel','Very large blind (x3 required score) (Ante 8 finisher)','Purple finisher; the biggest score check.','art/blind_violet_vessel.gif'),
+Bl('blind_crimson_heart','Crimson Heart','One random Joker disabled each hand (Ante 8 finisher)','Red finisher; rotating Joker loss.','art/blind_crimson_heart.gif'),
+Bl('blind_cerulean_bell','Cerulean Bell','Forces one card to always be selected (Ante 8 finisher)','Blue finisher; a stuck card each hand.','art/blind_cerulean_bell.gif')
+];
+function Bl(id,name,effect,notes,img){return{id,name,type:'Blind',rarity:'Blind',cost:0,effect,tags:['blind'],notes,img:img||''}}
+
+const BOOSTERS=[
+Pk('pack_arcana','Arcana Pack','Choose 1 of 3 Tarot cards','Tarot pack; enhances and shapes your deck.'),
+Pk('pack_jumbo_arcana','Jumbo Arcana Pack','Choose 1 of 5 Tarot cards','Bigger Arcana Pack.'),
+Pk('pack_mega_arcana','Mega Arcana Pack','Choose 2 of 5 Tarot cards','Largest Arcana Pack.'),
+Pk('pack_celestial','Celestial Pack','Choose 1 of 3 Planet cards','Planet pack; levels your hands.'),
+Pk('pack_jumbo_celestial','Jumbo Celestial Pack','Choose 1 of 5 Planet cards','Bigger Celestial Pack.'),
+Pk('pack_mega_celestial','Mega Celestial Pack','Choose 2 of 5 Planet cards','Largest Celestial Pack.'),
+Pk('pack_standard','Standard Pack','Choose 1 of 3 playing cards','Adds playing cards to your deck.'),
+Pk('pack_jumbo_standard','Jumbo Standard Pack','Choose 1 of 5 playing cards','Bigger Standard Pack.'),
+Pk('pack_mega_standard','Mega Standard Pack','Choose 2 of 5 playing cards','Largest Standard Pack.'),
+Pk('pack_buffoon','Buffoon Pack','Choose 1 of 2 Joker cards','Joker pack; the core of most builds.'),
+Pk('pack_jumbo_buffoon','Jumbo Buffoon Pack','Choose 1 of 4 Joker cards','Bigger Buffoon Pack.'),
+Pk('pack_mega_buffoon','Mega Buffoon Pack','Choose 1 of 4 Joker cards (2 picks)','Largest Buffoon Pack.'),
+Pk('pack_spectral','Spectral Pack','Choose 1 of 2 Spectral cards','Spectral pack; high-impact effects.'),
+Pk('pack_jumbo_spectral','Jumbo Spectral Pack','Choose 1 of 4 Spectral cards','Bigger Spectral Pack.'),
+Pk('pack_mega_spectral','Mega Spectral Pack','Choose 1 of 4 Spectral cards (2 picks)','Largest Spectral Pack.')
+];
+function Pk(id,name,effect,notes,img){return{id,name,type:'Booster',rarity:'Booster',cost:0,effect,tags:['booster'],notes,img:img||''}}
+
+// ============================================================
+// ===== YOUR ARTWORK GOES HERE ==============================
+// Put image files in a folder named "art" next to this HTML
+// file. Name each file after the card's id, e.g.:
+//     art/joker.png      art/baron.png      art/saturn.png
+//     art/fool.png       art/soul.png       art/red.png
+// Any id without a matching file keeps the built-in glyph.
+// See the full id list in balatrodex-art-filenames.txt
+// Change these two lines if you use a different folder/type:
+const ART_DIR='art';
+const ART_EXT='png';   // e.g. 'jpg', 'webp'
+// ============================================================
+
+// ============================================================
+// APP LOGIC
+// ============================================================
+const ALL=[...JOKERS,...TAROTS,...PLANETS,...SPECTRALS,...TAGS,...SEALS,...STAKES,...STICKERS,...ENHANCEMENTS,...VOUCHERS,...BLINDS,...BOOSTERS];
+const byId={}; ALL.forEach(c=>byId[c.id]=c);
+const RCOLOR={Common:'var(--common)',Uncommon:'var(--uncommon)',Rare:'var(--rare)',Legendary:'var(--legendary)',Tarot:'var(--tarot)',Planet:'var(--planet)',Spectral:'var(--spectral)',Deck:'var(--gold)',Tag:'#4f8fde',Seal:'#d24f6e',Stake:'#c0392b',Sticker:'#7f8c8d',Enhancement:'#3f9e6e',Voucher:'#c79a3a',Blind:'#8e44ad',Booster:'#e07b39'};
+const TINT={Common:'t-common',Uncommon:'t-uncommon',Rare:'t-rare',Legendary:'t-legendary',Tarot:'t-tarot',Planet:'t-planet',Spectral:'t-spectral',Deck:'t-deck',Tag:'t-tag',Seal:'t-seal',Stake:'t-stake',Sticker:'t-sticker',Enhancement:'t-enh',Voucher:'t-voucher',Blind:'t-blind',Booster:'t-pack'};
+
+let typeF='All', rarityF='All', q='';
+
+const TYPES=['All','Joker','Tarot','Planet','Spectral','Tag','Seal','Stake','Sticker','Enhancement','Voucher','Blind','Booster'];
+const RARITIES=['All','Common','Uncommon','Rare','Legendary'];
+
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;')}
+function initial(c){
+  const w=c.name.replace(/^The /,'').split(' ');
+  return w.length>1?(w[0][0]+w[1][0]).toUpperCase():w[0].slice(0,2).toUpperCase();
+}
+function artHTML(c,cls){
+  let inner;
+  if(c.type==='Planet'){
+    inner='<div class="planetball'+(c.id==='saturn'?' ring':'')+'" style="--pc:'+PLANET_COLOR[c.id]+'"></div>';
+  } else {
+    const g=GLYPH[c.id];
+    inner=g?'<span class="gl">'+g+'</span>':initial(c);
+  }
+  // explicit img field wins; otherwise auto-look for art/<id>.<ext>, falling back to the glyph
+  const src=c.img||(ART_DIR+'/'+c.id+'.'+ART_EXT);
+  // placeholder (tint box + glyph) is hidden by default; it is only revealed if the image fails to load
+  const ph='<div class="ph '+TINT[c.rarity]+'">'+inner+'</div>';
+  const img='<img src="'+src+'" alt="" loading="lazy" onerror="this.parentNode.classList.add(\'noimg\');this.remove()">';
+  return '<div class="'+cls+'">'+ph+img+'</div>';
+}
+
+function renderChips(){
+  const tc=document.getElementById('typechips');
+  tc.innerHTML=TYPES.map(t=>'<div class="fchip'+(typeF===t?' on':'')+'" onclick="setType(\''+t+'\')">'+t+(t==='All'?'':'s')+'</div>').join('');
+  const rc=document.getElementById('raritychips');
+  if(typeF==='Joker'||typeF==='All'){
+    rc.style.display='flex';
+    rc.innerHTML=RARITIES.map(r=>'<div class="fchip r-'+r.toLowerCase()+(rarityF===r?' on':'')+'" onclick="setRarity(\''+r+'\')">'+r+'</div>').join('');
+  } else { rc.style.display='none'; }
+}
+function setType(t){typeF=t; if(t!=='Joker'&&t!=='All')rarityF='All'; renderChips(); renderGrid();}
+function setRarity(r){rarityF=r; renderChips(); renderGrid();}
+
+function filtered(){
+  return ALL.filter(c=>{
+    if(typeF!=='All'&&c.type!==typeF)return false;
+    if(rarityF!=='All'&&c.type==='Joker'&&c.rarity!==rarityF)return false;
+    if(rarityF!=='All'&&c.type!=='Joker')return false;
+    if(q){
+      const s=(c.name+' '+c.effect+' '+c.tags.join(' ')).toLowerCase();
+      if(!s.includes(q))return false;
+    }
+    return true;
+  });
+}
+
+function renderGrid(){
+  const list=filtered();
+  document.getElementById('count').textContent=list.length+' card'+(list.length===1?'':'s');
+  document.getElementById('noresults').classList.toggle('hidden',list.length>0);
+  document.getElementById('grid').innerHTML=list.map(c=>
+    '<div class="bcard" onclick="openCard(\''+c.id+'\')">'+
+      artHTML(c,'art')+
+      '<div class="nm">'+esc(c.name)+'</div>'+
+      '<div class="meta"><span class="rdot" style="background:'+RCOLOR[c.rarity]+'"></span>'+
+      (c.cost?'<span class="cost">$'+c.cost+'</span>':'<span class="cost">\u2014</span>')+'</div>'+
+    '</div>').join('');
+}
+
+function openCard(id){
+  const c=byId[id]; if(!c)return;
+  const rels=SYNERGIES.filter(s=>s.ids.includes(id));
+  let html='<div class="grab"></div><div class="dhead">'+artHTML(c,'dart')+
+    '<div><div class="dtitle">'+esc(c.name)+'</div><div class="badges">'+
+    '<span class="badge" style="background:'+RCOLOR[c.rarity]+'">'+c.rarity+'</span>'+
+    (c.cost?'<span class="badge b-cost">$'+c.cost+'</span>':'')+
+    '<span class="badge" style="background:#6b6450">'+c.type+'</span>'+
+    '</div></div></div>'+
+    '<div class="effectbox"><span class="lbl">Effect</span>'+esc(c.effect)+'</div>'+
+    (c.notes?'<div class="notes"><span class="secthead">Synergy notes</span>'+esc(c.notes)+'</div>':'')+
+    (c.tags&&c.tags.length?'<div class="syntags">'+c.tags.map(t=>'<span class="syntag">'+t+'</span>').join('')+'</div>':'');
+  if(rels.length){
+    html+='<div class="notes" style="margin-top:14px"><span class="secthead">Appears in combos</span></div><div class="relrow">'+
+      rels.map(s=>'<span class="relcard">\uD83D\uDD17 '+esc(s.name)+'</span>').join('')+'</div>';
+  }
+  document.getElementById('sheet').innerHTML=html;
+  document.getElementById('overlay').classList.add('show');
+}
+document.getElementById('overlay').addEventListener('click',e=>{
+  if(e.target.id==='overlay')document.getElementById('overlay').classList.remove('show');
+});
+
+// ---------- synergies view ----------
+const TIERCOLOR={S:'var(--mult)',A:'var(--gold)',B:'var(--chip)',C:'#6b6450'};
+function renderSyn(){
+  document.getElementById('view-syn').innerHTML=SYNERGIES.map((s,i)=>
+    '<div class="synblock" id="syn-'+i+'"><h3><span class="tier" style="background:'+TIERCOLOR[s.tier]+'">'+s.tier+' TIER</span>'+esc(s.name)+'</h3>'+
+    '<div class="pieces">'+s.ids.map(id=>{const c=byId[id];return c?'<span class="piece" style="background:'+RCOLOR[c.rarity]+'" onclick="openCard(\''+id+'\')">'+esc(c.name)+'</span>':''}).join('')+'</div>'+
+    '<p>'+esc(s.desc)+'</p></div>').join('');
+}
+
+// ---------- decks view ----------
+function renderDecks(){
+  document.getElementById('deckgrid').innerHTML=DECKS.map(c=>
+    '<div class="bcard" onclick="openDeck(\''+c.id+'\')">'+artHTML(c,'art')+
+    '<div class="nm">'+esc(c.name)+'</div>'+
+    '<div class="meta"><span class="rdot" style="background:var(--gold)"></span></div></div>').join('');
+}
+function openDeck(id){
+  const c=DECKS.find(d=>d.id===id); if(!c)return;
+  document.getElementById('sheet').innerHTML='<div class="grab"></div><div class="dhead">'+artHTML(c,'dart')+
+    '<div><div class="dtitle">'+esc(c.name)+'</div><div class="badges"><span class="badge" style="background:var(--gold);color:#211a05">Deck</span></div></div></div>'+
+    '<div class="effectbox"><span class="lbl">Effect</span>'+esc(c.effect)+'</div>'+
+    '<div class="notes"><span class="secthead">Notes</span>'+esc(c.notes)+'</div>';
+  document.getElementById('overlay').classList.add('show');
+}
+
+// ---------- quiz ----------
+let Q={mode:null,qs:[],i:0,score:0,streak:0,best:0,answered:false};
+const MODES=[
+ {id:'e2n',qi:'\uD83C\uDFAD',qt:'Name that Joker',qd:'Effect shown \u2014 pick the Joker'},
+ {id:'n2e',qi:'\uD83D\uDCDC',qt:'What does it do?',qd:'Joker shown \u2014 pick the effect'},
+ {id:'rar',qi:'\uD83C\uDFF7\uFE0F',qt:'Rarity check',qd:'Common, Uncommon, Rare or Legendary?'},
+ {id:'pl',qi:'\uD83E\uDE90',qt:'Planet hands',qd:'Which hand does this Planet level?'}
+];
+function renderQuizHome(){
+  document.getElementById('qwrap').innerHTML=
+   '<div class="scorebar">'+
+   '<div class="scorebox"><div class="v goldv">'+Q.best+'</div><div class="l">BEST STREAK</div></div>'+
+   '</div><div class="qmodes">'+
+   MODES.map(m=>'<div class="qmode" onclick="startQuiz(\''+m.id+'\')"><div class="qi">'+m.qi+'</div><div class="qt">'+m.qt+'</div><div class="qd">'+m.qd+'</div></div>').join('')+'</div>';
+}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function pick(arr,n){return shuffle([...arr]).slice(0,n);}
+function startQuiz(mode){
+  Q.mode=mode;Q.i=0;Q.score=0;Q.streak=0;Q.qs=[];
+  if(mode==='pl'){
+    Q.qs=pick(PLANETS,Math.min(10,PLANETS.length)).map(p=>{
+      const wrong=pick(PLANETS.filter(x=>x.id!==p.id),3).map(x=>x.hand);
+      return {prompt:'Which poker hand does <span class="em">'+p.name+'</span> level up?',opts:shuffle([p.hand,...wrong]),ans:p.hand,why:p.name+' levels '+p.hand+'.'};
+    });
+  } else {
+    const pool=pick(JOKERS,10);
+    Q.qs=pool.map(j=>{
+      if(mode==='e2n'){
+        const wrong=pick(JOKERS.filter(x=>x.id!==j.id),3).map(x=>x.name);
+        return {prompt:'\u201C'+j.effect+'\u201D<br><br>Which Joker is this?',opts:shuffle([j.name,...wrong]),ans:j.name,why:j.name+' \u2014 '+j.rarity+', $'+j.cost+'.'};
+      }
+      if(mode==='n2e'){
+        const wrong=pick(JOKERS.filter(x=>x.id!==j.id),3).map(x=>x.effect);
+        return {prompt:'What does <span class="em">'+j.name+'</span> do?',opts:shuffle([j.effect,...wrong]),ans:j.effect,why:''};
+      }
+      const opts=['Common','Uncommon','Rare','Legendary'];
+      return {prompt:'What rarity is <span class="em">'+j.name+'</span>?<br><span style="font-size:12px;color:#6b6450">\u201C'+j.effect+'\u201D</span>',opts,ans:j.rarity,why:j.name+' is '+j.rarity+'.'};
+    });
+  }
+  renderQ();
+}
+function renderQ(){
+  if(Q.i>=Q.qs.length){
+    document.getElementById('qwrap').innerHTML=
+    '<button class="qback" onclick="renderQuizHome()">\u2190 Quiz menu</button>'+
+    '<div class="qcard"><div class="qresult"><div class="big">'+Q.score+' / '+Q.qs.length+'</div>'+
+    '<div class="sub">'+(Q.score===Q.qs.length?'Flush Five. Perfect round.':Q.score>=7?'Boss Blind beaten.':Q.score>=4?'Small Blind cleared \u2014 keep grinding.':'Back to the collection with you.')+'</div></div>'+
+    '<button class="qnext" onclick="startQuiz(\''+Q.mode+'\')">Play again</button>'+
+    '<button class="qnext" style="margin-top:8px;background:#e8e1cb;border-color:#b9b094" onclick="renderQuizHome()">Change mode</button></div>';
+    return;
+  }
+  Q.answered=false;
+  const cq=Q.qs[Q.i];
+  document.getElementById('qwrap').innerHTML=
+  '<button class="qback" onclick="renderQuizHome()">\u2190 Quiz menu</button>'+
+  '<div class="scorebar">'+
+  '<div class="scorebox"><div class="v chips">'+(Q.i+1)+'/'+Q.qs.length+'</div><div class="l">QUESTION</div></div>'+
+  '<div class="scorebox"><div class="v goldv">'+Q.score+'</div><div class="l">SCORE</div></div>'+
+  '<div class="scorebox"><div class="v mult">\u00d7'+Q.streak+'</div><div class="l">STREAK</div></div>'+
+  '</div><div class="qcard"><div class="qprompt">'+cq.prompt+'</div>'+
+  '<div class="qopts">'+cq.opts.map((o,k)=>'<button class="qopt" id="opt'+k+'" onclick="answer('+k+')">'+esc(o)+'</button>').join('')+'</div>'+
+  '<div class="qfeedback" id="qfb"></div></div>';
+}
+function answer(k){
+  if(Q.answered)return; Q.answered=true;
+  const cq=Q.qs[Q.i];
+  const right=cq.opts[k]===cq.ans;
+  cq.opts.forEach((o,j)=>{
+    const el=document.getElementById('opt'+j); el.disabled=true;
+    if(o===cq.ans)el.classList.add('correct');
+    else if(j===k)el.classList.add('wrong');
+  });
+  const fb=document.getElementById('qfb');
+  if(right){Q.score++;Q.streak++;if(Q.streak>Q.best)Q.best=Q.streak;
+    fb.textContent='\u2713 Correct! '+(cq.why||''); fb.className='qfeedback ok';}
+  else {Q.streak=0; fb.textContent='\u2717 '+(cq.why||('Answer: '+cq.ans)); fb.className='qfeedback no';}
+  const btn=document.createElement('button');btn.className='qnext';btn.textContent=Q.i+1>=Q.qs.length?'See results':'Next';
+  btn.onclick=()=>{Q.i++;renderQ();};
+  document.querySelector('.qcard').appendChild(btn);
+}
+
+// ---------- nav ----------
+function go(v){
+  ['cards','syn','decks','quiz','tut','play'].forEach(x=>{
+    document.getElementById('view-'+x).classList.toggle('hidden',x!==v);
+    document.getElementById('nav-'+x).classList.toggle('on',x===v);
+    const tn=document.getElementById('tn-'+x); if(tn)tn.classList.toggle('on',x===v);
+  });
+  document.getElementById('searchrow').style.display=v==='cards'?'flex':'none';
+  document.getElementById('typechips').style.display=v==='cards'?'flex':'none';
+  document.getElementById('raritychips').style.display=(v==='cards'&&(typeF==='Joker'||typeF==='All'))?'flex':'none';
+  window.scrollTo(0,0);
+}
+document.getElementById('search').addEventListener('input',e=>{q=e.target.value.trim().toLowerCase();renderGrid();});
+
+// ---------- top dropdown nav ----------
+function suppressNav(){const t=document.getElementById('topnav');t.classList.add('suppress');setTimeout(()=>t.classList.remove('suppress'),350);}
+function cardsTo(type,rarity){go('cards');setType(type||'All');if(rarity)setRarity(rarity);suppressNav();}
+function synTo(i){go('syn');const el=document.getElementById('syn-'+i);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});suppressNav();}
+function deckTo(id){go('decks');openDeck(id);suppressNav();}
+function quizTo(mode){go('quiz');startQuiz(mode);suppressNav();}
+function buildTopNav(){
+  const typeItems=TYPES.filter(t=>t!=='All').map(t=>{
+    if(t==='Joker'){
+      return '<a class="hassub" onclick="cardsTo(\'Joker\')">Jokers<span class="car">›</span>'+
+        '<div class="tnsub">'+
+        '<a onclick="event.stopPropagation();cardsTo(\'Joker\',\'All\')">All rarities</a>'+
+        RARITIES.filter(r=>r!=='All').map(r=>'<a onclick="event.stopPropagation();cardsTo(\'Joker\',\''+r+'\')">'+r+'</a>').join('')+
+        '</div></a>';
+    }
+    return '<a onclick="cardsTo(\''+t+'\')">'+t+'s</a>';
+  }).join('');
+  const cardsDrop='<a onclick="cardsTo(\'All\')">All cards</a>'+typeItems;
+  const synDrop=SYNERGIES.map((s,i)=>'<a onclick="synTo('+i+')"><span class="tier" style="background:'+TIERCOLOR[s.tier]+';padding:1px 6px;border-radius:5px;font-size:10px;color:#1a1a1a">'+s.tier+'</span>'+esc(s.name)+'</a>').join('');
+  const deckDrop=DECKS.map(d=>'<a onclick="deckTo(\''+d.id+'\')">'+esc(d.name)+'</a>').join('');
+  const quizDrop=MODES.map(m=>'<a onclick="quizTo(\''+m.id+'\')">'+m.qi+' '+esc(m.qt)+'</a>').join('');
+  const tutDrop=TUT.map((c,i)=>'<a onclick="tutTo('+i+')">'+(i+1)+'. '+esc(c.title)+'</a>').join('');
+  document.getElementById('topnav').innerHTML=
+    '<div class="tnitem"><button class="tnbtn on" id="tn-cards" onclick="go(\'cards\')">Cards<span class="car">▾</span></button><div class="tndrop">'+cardsDrop+'</div></div>'+
+    '<div class="tnitem"><button class="tnbtn" id="tn-syn" onclick="go(\'syn\')">Synergies<span class="car">▾</span></button><div class="tndrop">'+synDrop+'</div></div>'+
+    '<div class="tnitem"><button class="tnbtn" id="tn-decks" onclick="go(\'decks\')">Decks<span class="car">▾</span></button><div class="tndrop">'+deckDrop+'</div></div>'+
+    '<div class="tnitem"><button class="tnbtn" id="tn-tut" onclick="go(\'tut\')">Tutorial<span class="car">▾</span></button><div class="tndrop">'+tutDrop+'</div></div>'+
+    '<div class="tnitem"><button class="tnbtn" id="tn-play" onclick="go(\'play\')">Play<span class="car">▾</span></button><div class="tndrop"><a onclick="pgStart();go(\'play\');suppressNav()">🎮 New run</a><a onclick="go(\'tut\');suppressNav()">📖 How to play</a></div></div>'+
+    '<div class="tnitem"><button class="tnbtn" id="tn-quiz" onclick="go(\'quiz\')">Quiz<span class="car">▾</span></button><div class="tndrop">'+quizDrop+'</div></div>';
+}
+function tutTo(i){go('tut');tutGo(i);suppressNav();}
+// hide the header (with the top nav) on scroll-down, reveal it on scroll-up
+let _lastY=0;
+window.addEventListener('scroll',()=>{
+  const y=window.scrollY||document.documentElement.scrollTop;
+  const h=document.querySelector('header');
+  if(y>_lastY&&y>90)h.classList.add('nav-hidden');
+  else if(y<_lastY)h.classList.remove('nav-hidden');
+  _lastY=y;
+},{passive:true});
+
+// ============================================================
+// ===== TUTORIAL (interactive how-to-play) ===================
+// ============================================================
+const HANDS=[
+ {n:'High Card',c:5,m:1},{n:'Pair',c:10,m:2},{n:'Two Pair',c:20,m:2},
+ {n:'Three of a Kind',c:30,m:3},{n:'Straight',c:30,m:4},{n:'Flush',c:35,m:4},
+ {n:'Full House',c:40,m:4},{n:'Four of a Kind',c:60,m:7},{n:'Straight Flush',c:100,m:8}
+];
+const DEMO_JOKERS=[
+ {k:'chips',desc:'+30 Chips',type:'chips',val:30},
+ {k:'mult',desc:'+8 Mult',type:'mult',val:8},
+ {k:'x2',desc:'×2 Mult',type:'xmult',val:2},
+ {k:'x3',desc:'×3 Mult',type:'xmult',val:3}
+];
+let demo={hand:3,jok:{}};
+function setDemoHand(i){demo.hand=i;renderDemo();}
+function toggleDemoJoker(k){demo.jok[k]=!demo.jok[k];renderDemo();}
+function renderDemo(){
+  const el=document.getElementById('scoredemo'); if(!el)return;
+  const h=HANDS[demo.hand]; let chips=h.c, mult=h.m;
+  DEMO_JOKERS.forEach(j=>{if(demo.jok[j.k]&&j.type==='chips')chips+=j.val;});
+  DEMO_JOKERS.forEach(j=>{if(demo.jok[j.k]&&j.type==='mult')mult+=j.val;});
+  DEMO_JOKERS.forEach(j=>{if(demo.jok[j.k]&&j.type==='xmult')mult*=j.val;});
+  const total=chips*mult;
+  el.innerHTML=
+    '<div class="sdlbl">1 · Pick a poker hand</div>'+
+    '<div class="sdrow">'+HANDS.map((x,i)=>'<div class="sdchip'+(i===demo.hand?' on':'')+'" onclick="setDemoHand('+i+')">'+x.n+'</div>').join('')+'</div>'+
+    '<div class="sdlbl">2 · Add Jokers (tap to toggle)</div>'+
+    '<div class="sdrow">'+DEMO_JOKERS.map(j=>'<div class="sdchip sdjok'+(demo.jok[j.k]?' on':'')+'" onclick="toggleDemoJoker(\''+j.k+'\')">'+j.desc+'</div>').join('')+'</div>'+
+    '<div class="sdscore"><span class="pill chips">'+chips+'</span><span class="x">×</span><span class="pill mult">'+(Number.isInteger(mult)?mult:mult.toFixed(1))+'</span></div>'+
+    '<div class="sdtotal">SCORE<b>'+total.toLocaleString()+'</b></div>';
+}
+const TUT=[
+ {title:'Welcome to Balatro',body:`
+   <p>Balatro is a <b>poker-roguelike</b>. You play poker hands to score points and beat a series of <b>Blinds</b>. Each hand you play is scored, and you must reach the Blind's target to advance.</p>
+   <p>A run is <b>8 Antes</b>. Every Ante has three Blinds in order: a <b>Small Blind</b>, a <b>Big Blind</b>, and a <b>Boss Blind</b>. Clear the Boss of Ante 8 to win.</p>
+   <ul><li>Beat a Blind → visit the <b>Shop</b> to get stronger.</li><li>Fail to reach the target → the run ends.</li></ul>
+   <p>This tutorial walks you through every piece. Tap <span class="em">Next</span> to begin.</p>`},
+ {title:'Score = Chips × Mult',body:`
+   <p>Every hand's score is just two numbers multiplied together:</p>
+   <p style="text-align:center;font-size:18px;font-weight:900;color:#3a2f12">Chips <span style="color:var(--chip)">◆</span> × Mult <span style="color:var(--mult)">◆</span> = Score</p>
+   <ul>
+     <li><b>Chips</b> are the blue number. Your poker hand and each scoring card add Chips.</li>
+     <li><b>Mult</b> is the red number. Better hands and Jokers raise it.</li>
+   </ul>
+   <p>The trick to big scores isn't adding a little of each — it's growing <b>both</b>, especially finding <span class="em">×Mult</span> effects that multiply the red number.</p>`},
+ {title:'Try it: the scoring playground',body:`
+   <p>Pick a poker hand to set its base Chips and Mult, then toggle some Joker effects and watch the score change. Notice how <span class="em">×Mult</span> Jokers blow the total up far faster than flat bonuses.</p>
+   <div class="sdemo" id="scoredemo"></div>
+   <p>Higher hands start with more of both numbers — but a humble Pair with the right Jokers can beat a raw Straight Flush.</p>`,init:renderDemo},
+ {title:'Hands & Discards',body:`
+   <p>Each Blind gives you a limited number of <b>Hands</b> (plays) and <b>Discards</b>.</p>
+   <ul>
+     <li>You draw cards into your hand. Select up to 5 and either <b>Play</b> them (scored) or <b>Discard</b> them (thrown away, then redraw).</li>
+     <li>Run out of Hands before hitting the target and you lose.</li>
+     <li>Discards let you dig for the cards or suits you need — spend them wisely.</li>
+   </ul>
+   <p>Many Jokers and Vouchers grant extra Hands or Discards.</p>`},
+ {title:'Blinds & Boss Blinds',body:`
+   <p>Small and Big Blinds are plain score checks — you may also <b>skip</b> them to grab a <b>Tag</b> reward instead of playing.</p>
+   <p><b>Boss Blinds</b> add a nasty rule: debuffing a suit, shrinking your hand, forcing one hand type, and more. Read the Boss before you commit.</p>
+   <span class="tlink" onclick="cardsTo('Blind')">Browse all Blinds →</span>
+   <span class="tlink" onclick="cardsTo('Tag')">See Skip Tags →</span>`},
+ {title:'The Shop & Money',body:`
+   <p>After each Blind you enter the <b>Shop</b>. Spend <b>$</b> on:</p>
+   <ul>
+     <li><b>Jokers</b> — your permanent scoring engine.</li>
+     <li><b>Booster Packs</b> — open them to pick cards.</li>
+     <li><b>Vouchers</b> — powerful run-long upgrades.</li>
+   </ul>
+   <p>You can <b>Reroll</b> the shop for new items. Money earns <b>interest</b>: +$1 per $5 saved (up to a cap), so banking cash snowballs.</p>
+   <span class="tlink" onclick="cardsTo('Booster')">Booster Packs →</span>
+   <span class="tlink" onclick="cardsTo('Voucher')">Vouchers →</span>`},
+ {title:'Jokers — your engine',body:`
+   <p><b>Jokers</b> sit in up to 5 slots and apply their effect on every hand — adding Chips, adding Mult, multiplying Mult, or making money. They are <b>the</b> source of big scores.</p>
+   <p>Order matters: Jokers trigger left-to-right, so place <span class="em">×Mult</span> Jokers last to multiply everything before them.</p>
+   <span class="tlink" onclick="cardsTo('Joker')">Browse all 150 Jokers →</span>
+   <span class="tlink" onclick="go('syn')">See Joker synergies →</span>`},
+ {title:'Consumables: Tarot, Planet, Spectral',body:`
+   <p>Consumables sit in their own slots and are used once:</p>
+   <ul>
+     <li><b>Tarot</b> cards enhance/transform your playing cards or give money.</li>
+     <li><b>Planet</b> cards <b>level up a poker hand</b>, permanently raising its base Chips and Mult.</li>
+     <li><b>Spectral</b> cards are rare, powerful, and often come with a drawback.</li>
+   </ul>
+   <span class="tlink" onclick="cardsTo('Tarot')">Tarots →</span>
+   <span class="tlink" onclick="cardsTo('Planet')">Planets →</span>
+   <span class="tlink" onclick="cardsTo('Spectral')">Spectrals →</span>`},
+ {title:'Enhancements, Editions & Seals',body:`
+   <p>Your individual playing cards can be upgraded:</p>
+   <ul>
+     <li><b>Enhancements</b> change what a card does when scored (e.g. Glass = ×2 Mult, Steel = ×1.5 while held).</li>
+     <li><b>Seals</b> add a bonus trigger (retrigger, create a card, earn money).</li>
+   </ul>
+   <span class="tlink" onclick="cardsTo('Enhancement')">Enhancements →</span>
+   <span class="tlink" onclick="cardsTo('Seal')">Seals →</span>`},
+ {title:'Decks & Stakes',body:`
+   <p><b>Decks</b> are your starting setup — each gives a run-long bonus (extra hand, more money, a starting Voucher, etc.). Pick one before the run.</p>
+   <p><b>Stakes</b> are difficulty levels that stack extra rules as you win, from White (easiest) to Gold (hardest).</p>
+   <span class="tlink" onclick="go('decks')">Browse Decks →</span>
+   <span class="tlink" onclick="cardsTo('Stake')">Stakes →</span>`},
+ {title:"You're ready!",body:`
+   <p>That's the core loop: <b>play hands → beat Blinds → shop for Jokers → scale Chips × Mult</b> until you crush Ante 8.</p>
+   <p>From here, explore the full card reference, study synergies, and test what you've learned.</p>
+   <span class="tlink" onclick="cardsTo('All')">Open the card reference →</span>
+   <span class="tlink" onclick="go('syn')">Synergies →</span>`}
+];
+let TUTi=0;
+function renderTut(){
+  const ch=TUT[TUTi];
+  const pct=Math.round((TUTi/(TUT.length-1))*100);
+  document.getElementById('view-tut').innerHTML=
+    '<div class="tutwrap">'+
+    '<div class="tutbar"><div class="tutprog"><i style="width:'+pct+'%"></i></div>'+
+    '<div class="tutdots">'+TUT.map((c,i)=>'<div class="tutdot'+(i===TUTi?' on':(i<TUTi?' done':''))+'" onclick="tutGo('+i+')" title="'+esc(c.title)+'">'+(i+1)+'</div>').join('')+'</div></div>'+
+    '<div class="tutcard"><div class="tutstep">Step '+(TUTi+1)+' of '+TUT.length+'</div><h2>'+esc(ch.title)+'</h2>'+ch.body+
+    '<div class="tutnav"><button class="tutbtn sec" onclick="tutPrev()"'+(TUTi===0?' disabled':'')+'>← Back</button>'+
+    (TUTi<TUT.length-1?'<button class="tutbtn" onclick="tutNext()">Next →</button>':'<button class="tutbtn" onclick="go(\'quiz\')">Take the Quiz →</button>')+
+    '</div></div></div>';
+  if(ch.init)ch.init();
+}
+function tutGo(i){TUTi=Math.max(0,Math.min(TUT.length-1,i));renderTut();window.scrollTo(0,0);}
+function tutNext(){tutGo(TUTi+1);}
+function tutPrev(){tutGo(TUTi-1);}
+
+// ============================================================
+// ===== PLAY: an interactive mini-Balatro run ================
+// ============================================================
+const PG_RANKS=['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+const PG_SUITS=['♠','♥','♦','♣']; // spade heart diamond club
+function pgChip(r){if(r==='A')return 11;if(r==='K'||r==='Q'||r==='J'||r==='10')return 10;return parseInt(r,10);}
+const HV={'High Card':[5,1],'Pair':[10,2],'Two Pair':[20,2],'Three of a Kind':[30,3],'Straight':[30,4],'Flush':[35,4],'Full House':[40,4],'Four of a Kind':[60,7],'Straight Flush':[100,8]};
+const ANTE_BASE=[300,800,2000,5000,11000,20000,35000,50000];
+const BLINDDEF=[{name:'Small Blind',mult:1,reward:3},{name:'Big Blind',mult:1.5,reward:4},{name:'Boss Blind',mult:2,reward:5}];
+
+function pgMaxKind(cs){const m={};cs.forEach(x=>m[x.rank]=(m[x.rank]||0)+1);return Math.max(0,...Object.values(m));}
+function pgIsEven(x){return [2,4,6,8,10].includes(x.rv);}
+function pgIsOdd(x){return x.rank==='A'||[3,5,7,9].includes(x.rv);}
+const GJOKERS=[
+ {id:'gj_joker',art:'joker',name:'Joker',cost:3,desc:'+4 Mult',f:()=>({m:4})},
+ {id:'gj_greedy',art:'greedy',name:'Greedy Joker',cost:5,desc:'+3 Mult per ♦ scored',f:c=>({m:3*c.scoring.filter(x=>x.suit==='♦').length})},
+ {id:'gj_lusty',art:'lusty',name:'Lusty Joker',cost:5,desc:'+3 Mult per ♥ scored',f:c=>({m:3*c.scoring.filter(x=>x.suit==='♥').length})},
+ {id:'gj_wrath',art:'wrathful',name:'Wrathful Joker',cost:5,desc:'+3 Mult per ♠ scored',f:c=>({m:3*c.scoring.filter(x=>x.suit==='♠').length})},
+ {id:'gj_glut',art:'gluttonous',name:'Gluttonous Joker',cost:5,desc:'+3 Mult per ♣ scored',f:c=>({m:3*c.scoring.filter(x=>x.suit==='♣').length})},
+ {id:'gj_jolly',art:'jolly',name:'Jolly Joker',cost:4,desc:'+8 Mult if played hand has a Pair',f:c=>({m:pgMaxKind(c.played)>=2?8:0})},
+ {id:'gj_zany',art:'zany',name:'Zany Joker',cost:4,desc:'+12 Mult if Three of a Kind',f:c=>({m:pgMaxKind(c.played)>=3?12:0})},
+ {id:'gj_half',art:'half',name:'Half Joker',cost:5,desc:'+20 Mult if 3 or fewer cards played',f:c=>({m:c.played.length<=3?20:0})},
+ {id:'gj_scary',art:'scaryface',name:'Scary Face',cost:4,desc:'+30 Chips per face card scored',f:c=>({c:30*c.scoring.filter(x=>['J','Q','K'].includes(x.rank)).length})},
+ {id:'gj_even',art:'evensteven',name:'Even Steven',cost:4,desc:'+4 Mult per even card scored',f:c=>({m:4*c.scoring.filter(pgIsEven).length})},
+ {id:'gj_odd',art:'oddtodd',name:'Odd Todd',cost:4,desc:'+31 Chips per odd card scored',f:c=>({c:31*c.scoring.filter(pgIsOdd).length})},
+ {id:'gj_scholar',art:'scholar',name:'Scholar',cost:5,desc:'Each scored Ace gives +20 Chips & +4 Mult',f:c=>{const a=c.scoring.filter(x=>x.rank==='A').length;return {c:20*a,m:4*a};}},
+ {id:'gj_abstract',art:'abstract',name:'Abstract Joker',cost:5,desc:'+3 Mult per Joker owned',f:()=>({m:3*PLAY.jokers.length})},
+ {id:'gj_duo',art:'duo',name:'The Duo',cost:6,desc:'×2 Mult if played hand has a Pair',f:c=>({x:pgMaxKind(c.played)>=2?2:1})},
+ {id:'gj_crazy',art:'crazy',name:'Crazy Joker',cost:5,desc:'+12 Mult if hand is a Straight',f:c=>({m:(c.type==='Straight'||c.type==='Straight Flush')?12:0})},
+ {id:'gj_droll',art:'droll',name:'Droll Joker',cost:5,desc:'+10 Mult if hand is a Flush',f:c=>({m:c.type.indexOf('Flush')>=0?10:0})},
+ {id:'gj_bull',art:'bull',name:'Bull',cost:6,desc:'+2 Chips per $1 you have',f:()=>({c:2*Math.max(0,PLAY.money)})}
+];
+function pgJokerArt(j){const c=byId[j.art]||{id:j.art,type:'Joker',rarity:'Common',name:j.name,img:''};return artHTML(c,'pjart');}
+function pgConArt(c){const card=byId[c.art]||{id:c.art,type:c.type,rarity:c.type,name:c.name,img:''};return artHTML(card,'pjart');}
+
+// ===== consumables: Planets / Tarots / Spectrals =====
+const HAND_KEYS=['High Card','Pair','Two Pair','Three of a Kind','Straight','Flush','Full House','Four of a Kind','Straight Flush'];
+function pgRandFrom(a){return a[Math.floor(Math.random()*a.length)];}
+function pgRankUp(c){let i=PG_RANKS.indexOf(c.rank)+1;if(i>=PG_RANKS.length)i=0;c.rank=PG_RANKS[i];c.rv=i+2;c.baseChip=pgChip(c.rank);}
+function pgEnhSel(enh,max){const s=pgSelected().slice(0,max);if(!s.length)return false;s.forEach(c=>c.enh=enh);return s.length;}
+function pgSealSel(seal,max){const s=pgSelected().slice(0,max);if(!s.length)return false;s.forEach(c=>c.seal=seal);return s.length;}
+function pgSuitSel(su,red,max){const s=pgSelected().slice(0,max);if(!s.length)return false;s.forEach(c=>{c.suit=su;c.red=red;});return s.length;}
+function pgDestroy(cards){const ids=new Set(cards.map(c=>c.uid));PLAY.deck52=PLAY.deck52.filter(c=>!ids.has(c.uid));PLAY.hand=PLAY.hand.filter(c=>!ids.has(c.uid));PLAY.sel=new Set();}
+function pgDestroyRandom(n){pgDestroy(pgShuffle(PLAY.deck52.slice()).slice(0,n));}
+function pgCopyCard(dst,src){dst.rank=src.rank;dst.suit=src.suit;dst.red=src.red;dst.rv=src.rv;dst.baseChip=src.baseChip;dst.enh=src.enh;dst.seal=src.seal;dst.ed=src.ed;}
+function pgAddCons(gen,n){let a=0;for(let i=0;i<n;i++){if(PLAY.consumables.length>=PLAY.conCap)break;PLAY.consumables.push(gen());a++;}return a;}
+function pgAddEnhanced(n,ranks){const enh=['bonus','mult','glass','steel','gold','wild'];for(let i=0;i<n;i++){const c=pgNewCard(pgRandFrom(ranks),pgRandFrom(PG_SUITS));c.enh=pgRandFrom(enh);PLAY.deck52.push(c);if(PLAY.hand&&PLAY.hand.length<(PLAY.curHandSize||8))PLAY.hand.push(c);}}
+
+const PG_PLANETS=[['pluto','Pluto','High Card'],['mercury','Mercury','Pair'],['uranus','Uranus','Two Pair'],['venus','Venus','Three of a Kind'],['saturn','Saturn','Straight'],['jupiter','Jupiter','Flush'],['earth','Earth','Full House'],['mars','Mars','Four of a Kind'],['neptune','Neptune','Straight Flush']].map(p=>({id:p[0],art:p[0],name:p[1],type:'Planet',need:0,desc:'Level up '+p[2]+' +1',use:()=>{pgLevelHand(p[2],1);return'Leveled '+p[2]+'.';}}));
+const PG_TAROTS=[
+ {id:'magician',art:'magician',name:'The Magician',type:'Tarot',need:2,desc:'Up to 2 selected cards → Lucky',use:()=>pgEnhSel('lucky',2)&&'Lucky added.'},
+ {id:'empress',art:'empress',name:'The Empress',type:'Tarot',need:2,desc:'Up to 2 selected → Mult (+4 Mult)',use:()=>pgEnhSel('mult',2)&&'Mult added.'},
+ {id:'hierophant',art:'hierophant',name:'The Hierophant',type:'Tarot',need:2,desc:'Up to 2 selected → Bonus (+30 Chips)',use:()=>pgEnhSel('bonus',2)&&'Bonus added.'},
+ {id:'lovers',art:'lovers',name:'The Lovers',type:'Tarot',need:1,desc:'1 selected → Wild (any suit)',use:()=>pgEnhSel('wild',1)&&'Wild added.'},
+ {id:'chariot',art:'chariot',name:'The Chariot',type:'Tarot',need:1,desc:'1 selected → Steel (×1.5 held)',use:()=>pgEnhSel('steel',1)&&'Steel added.'},
+ {id:'justice',art:'justice',name:'Justice',type:'Tarot',need:1,desc:'1 selected → Glass (×2, fragile)',use:()=>pgEnhSel('glass',1)&&'Glass added.'},
+ {id:'devil',art:'devil',name:'The Devil',type:'Tarot',need:1,desc:'1 selected → Gold (+$3 when scored)',use:()=>pgEnhSel('gold',1)&&'Gold added.'},
+ {id:'tower',art:'tower',name:'The Tower',type:'Tarot',need:1,desc:'1 selected → Stone (+50 Chips, no rank)',use:()=>pgEnhSel('stone',1)&&'Stone added.'},
+ {id:'strength',art:'strength',name:'Strength',type:'Tarot',need:2,desc:'Up to 2 selected: rank +1',use:()=>{const s=pgSelected().slice(0,2);if(!s.length)return false;s.forEach(pgRankUp);return'Ranks +1.';}},
+ {id:'hangedman',art:'hangedman',name:'The Hanged Man',type:'Tarot',need:2,desc:'Destroy up to 2 selected cards',use:()=>{const s=pgSelected().slice(0,2);if(!s.length)return false;const k=s.length;pgDestroy(s);return'Destroyed '+k+'.';}},
+ {id:'death',art:'death',name:'Death',type:'Tarot',need:2,desc:'Select exactly 2: right copies left',use:()=>{const s=pgSelected();if(s.length!==2)return false;pgCopyCard(s[1],s[0]);return'Copied.';}},
+ {id:'star',art:'star',name:'The Star',type:'Tarot',need:3,desc:'Up to 3 selected → ♦ Diamonds',use:()=>pgSuitSel('♦',true,3)&&'Now ♦.'},
+ {id:'moon',art:'moon',name:'The Moon',type:'Tarot',need:3,desc:'Up to 3 selected → ♣ Clubs',use:()=>pgSuitSel('♣',false,3)&&'Now ♣.'},
+ {id:'sun',art:'sun',name:'The Sun',type:'Tarot',need:3,desc:'Up to 3 selected → ♥ Hearts',use:()=>pgSuitSel('♥',true,3)&&'Now ♥.'},
+ {id:'world',art:'world',name:'The World',type:'Tarot',need:3,desc:'Up to 3 selected → ♠ Spades',use:()=>pgSuitSel('♠',false,3)&&'Now ♠.'},
+ {id:'hermit',art:'hermit',name:'The Hermit',type:'Tarot',need:0,desc:'Double money (max +$20)',use:()=>{const g=Math.min(20,Math.max(0,PLAY.money));PLAY.money+=g;return'+$'+g+'.';}},
+ {id:'temperance',art:'temperance',name:'Temperance',type:'Tarot',need:0,desc:'Gain total Joker sell value (max $50)',use:()=>{const g=Math.min(50,PLAY.jokers.reduce((a,j)=>a+Math.max(1,Math.floor(j.cost/2)),0));PLAY.money+=g;return'+$'+g+'.';}},
+ {id:'emperor',art:'emperor',name:'The Emperor',type:'Tarot',need:0,desc:'Create up to 2 random Tarots',use:()=>{const n=pgAddCons(()=>pgRandFrom(PG_TAROTS),2);return n?'Created '+n+' Tarot(s).':'Slots full.';}},
+ {id:'highpriestess',art:'highpriestess',name:'The High Priestess',type:'Tarot',need:0,desc:'Create up to 2 random Planets',use:()=>{const n=pgAddCons(()=>pgRandFrom(PG_PLANETS),2);return n?'Created '+n+' Planet(s).':'Slots full.';}},
+ {id:'judgement',art:'judgement',name:'Judgement',type:'Tarot',need:0,desc:'Create a random Joker',use:()=>pgGrantJoker()?'Joker created.':'Joker slots full.'}
+];
+const PG_SPECTRALS=[
+ {id:'blackhole',art:'blackhole',name:'Black Hole',type:'Spectral',need:0,desc:'Level up EVERY poker hand +1',use:()=>{HAND_KEYS.forEach(h=>pgLevelHand(h,1));return'All hands +1.';}},
+ {id:'immolate',art:'immolate',name:'Immolate',type:'Spectral',need:0,desc:'Destroy 5 random cards, gain $20',use:()=>{pgDestroyRandom(5);PLAY.money+=20;return'Burned 5, +$20.';}},
+ {id:'ectoplasm',art:'ectoplasm',name:'Ectoplasm',type:'Spectral',need:0,desc:'+1 Joker slot, -1 hand size',use:()=>{PLAY.jokerCap++;PLAY.handSize=Math.max(2,PLAY.handSize-1);return'Joker slot +1, hand -1.';}},
+ {id:'soul',art:'soul',name:'The Soul',type:'Spectral',need:0,desc:'Create a powerful Joker',use:()=>pgGrantJoker()?'A powerful Joker appears.':'Joker slots full.'},
+ {id:'wraith',art:'wraith',name:'Wraith',type:'Spectral',need:0,desc:'Create a Joker, set money to $0',use:()=>{const g=pgGrantJoker();PLAY.money=0;return g?'Joker created, money drained.':'Slots full, money drained.';}},
+ {id:'talisman',art:'talisman',name:'Talisman',type:'Spectral',need:1,desc:'1 selected → Gold Seal',use:()=>pgSealSel('gold',1)&&'Gold Seal.'},
+ {id:'medium',art:'medium',name:'Medium',type:'Spectral',need:1,desc:'1 selected → Purple Seal',use:()=>pgSealSel('purple',1)&&'Purple Seal.'},
+ {id:'dejavu',art:'dejavu',name:'Deja Vu',type:'Spectral',need:1,desc:'1 selected → Red Seal (retrigger)',use:()=>pgSealSel('red',1)&&'Red Seal.'},
+ {id:'trance',art:'trance',name:'Trance',type:'Spectral',need:1,desc:'1 selected → Blue Seal',use:()=>pgSealSel('blue',1)&&'Blue Seal.'},
+ {id:'aura',art:'aura',name:'Aura',type:'Spectral',need:1,desc:'1 selected → random edition',use:()=>{const s=pgSelected().slice(0,1);if(!s.length)return false;s[0].ed=pgRandFrom(['foil','holo','poly']);return'Edition added.';}},
+ {id:'sigil',art:'sigil',name:'Sigil',type:'Spectral',need:0,desc:'All cards in hand → one random suit',use:()=>{if(!PLAY.hand||!PLAY.hand.length)return false;const su=pgRandFrom(PG_SUITS),red=(su==='♥'||su==='♦');PLAY.hand.forEach(c=>{c.suit=su;c.red=red;});return'Hand all '+su+'.';}},
+ {id:'ouija',art:'ouija',name:'Ouija',type:'Spectral',need:0,desc:'All cards in hand → one rank, -1 hand size',use:()=>{if(!PLAY.hand||!PLAY.hand.length)return false;const r=pgRandFrom(PG_RANKS);PLAY.hand.forEach(c=>{c.rank=r;c.rv=PG_RANKS.indexOf(r)+2;c.baseChip=pgChip(r);});PLAY.handSize=Math.max(2,PLAY.handSize-1);return'Hand all '+r+'.';}},
+ {id:'cryptid',art:'cryptid',name:'Cryptid',type:'Spectral',need:1,desc:'Create 2 copies of selected card',use:()=>{const s=pgSelected().slice(0,1);if(!s.length)return false;for(let i=0;i<2;i++){const c=pgNewCard(s[0].rank,s[0].suit);c.enh=s[0].enh;c.seal=s[0].seal;c.ed=s[0].ed;PLAY.deck52.push(c);if(PLAY.hand.length<(PLAY.curHandSize||8))PLAY.hand.push(c);}return'2 copies created.';}},
+ {id:'familiar',art:'familiar',name:'Familiar',type:'Spectral',need:0,desc:'Destroy 1 random, add 3 enhanced face cards',use:()=>{pgDestroyRandom(1);pgAddEnhanced(3,['J','Q','K']);return'+3 face cards.';}},
+ {id:'grim',art:'grim',name:'Grim',type:'Spectral',need:0,desc:'Destroy 1 random, add 2 enhanced Aces',use:()=>{pgDestroyRandom(1);pgAddEnhanced(2,['A']);return'+2 Aces.';}},
+ {id:'incantation',art:'incantation',name:'Incantation',type:'Spectral',need:0,desc:'Destroy 1 random, add 4 enhanced number cards',use:()=>{pgDestroyRandom(1);pgAddEnhanced(4,['2','3','4','5','6','7','8','9','10']);return'+4 number cards.';}}
+];
+function pgUseCon(idx){const con=PLAY.consumables[idx];if(!con)return;if(con.need>0&&pgSelected().length<1){PLAY.msg='Select card(s) in your hand, then tap '+con.name+'.';pgRender();return;}const note=con.use();if(note===false){PLAY.msg='Can’t use '+con.name+(con.need>0?' — select '+con.need+' card'+(con.need>1?'s':'')+' in hand.':' now.');pgRender();return;}PLAY.consumables.splice(idx,1);PLAY.msg=con.name+': '+note;PLAY.sel=new Set();pgRender();}
+
+// ===== booster packs =====
+const PG_PACKS=[
+ {id:'pk_arcana',art:'pack_arcana',name:'Arcana Pack',cost:4,kind:'Tarot',pick:1,size:3,pool:()=>PG_TAROTS},
+ {id:'pk_celestial',art:'pack_celestial',name:'Celestial Pack',cost:4,kind:'Planet',pick:1,size:3,pool:()=>PG_PLANETS},
+ {id:'pk_buffoon',art:'pack_buffoon',name:'Buffoon Pack',cost:4,kind:'Joker',pick:1,size:2,pool:()=>GJOKERS.filter(j=>!PLAY.jokers.some(o=>o.id===j.id))},
+ {id:'pk_standard',art:'pack_standard',name:'Standard Pack',cost:4,kind:'Card',pick:1,size:3,pool:'cards'},
+ {id:'pk_spectral',art:'pack_spectral',name:'Spectral Pack',cost:6,kind:'Spectral',pick:1,size:2,pool:()=>PG_SPECTRALS}
+];
+function pgBuyPack(id){const pk=(PLAY.shopPacks||[]).find(p=>p.id===id);if(!pk)return;const cost=PLAY.freeShop?0:pk.cost;if(PLAY.money<cost)return;PLAY.money-=cost;PLAY.shopPacks=PLAY.shopPacks.filter(p=>p.id!==id);pgOpenPack(pk,'shop');}
+function pgOpenPack(pk,from){let items;if(pk.pool==='cards'){items=[];for(let i=0;i<pk.size;i++){const c=pgNewCard(pgRandFrom(PG_RANKS),pgRandFrom(PG_SUITS));if(Math.random()<0.45)c.enh=pgRandFrom(['bonus','mult','glass','steel','gold','wild']);if(Math.random()<0.25)c.ed=pgRandFrom(['foil','holo','poly']);if(Math.random()<0.25)c.seal=pgRandFrom(['gold','red','blue','purple']);items.push(c);}}else{items=pgShuffle(pk.pool().slice()).slice(0,pk.size);}PLAY.pack={kind:pk.kind,name:pk.name,pick:pk.pick,picked:0,items,from:from||'shop'};PLAY.phase='pack';pgRender();}
+function pgTakePack(i){const pk=PLAY.pack;if(!pk||pk.picked>=pk.pick)return;const it=pk.items[i];if(!it||it._taken)return;if(pk.kind==='Joker'){if(PLAY.jokers.length>=PLAY.jokerCap){PLAY.msg='Joker slots full.';pgRender();return;}PLAY.jokers.push(it);}else if(pk.kind==='Card'){PLAY.deck52.push(it);}else{if(PLAY.consumables.length>=PLAY.conCap){PLAY.msg='Consumable slots full.';pgRender();return;}PLAY.consumables.push(it);}it._taken=true;pk.picked++;if(pk.picked>=pk.pick)pgClosePack();else pgRender();}
+function pgClosePack(){const from=PLAY.pack?PLAY.pack.from:'shop';PLAY.pack=null;if(from==='shop'){PLAY.phase='shop';pgRender();}else{pgGotoNext();}}
+function pgEnhAbbr(e){return({bonus:'+30',mult:'+4M',glass:'×2',steel:'×1½',gold:'$',stone:'STN',wild:'WLD',lucky:'LCK'})[e]||'';}
+function pgPlayCardHTML(c,sel,sc,onclick){const badge=c.enh?'<span class="enb">'+pgEnhAbbr(c.enh)+'</span>':'';const seal=c.seal?'<span class="seal s-'+c.seal+'"></span>':'';const ed=c.ed?' ed-'+c.ed:'';return '<div class="pcard '+(c.red?'red':'blk')+(sel?' sel':'')+(sc?' scoring':'')+ed+'"'+(onclick?' onclick="'+onclick+'"':'')+'>'+(sc?'<span class="sc">scores</span>':'')+badge+seal+'<span class="pr">'+c.rank+'</span><span class="ps">'+c.suit+'</span></div>';}
+function pgConRow(){return PLAY.consumables.length?PLAY.consumables.map((c,i)=>'<div class="pcon" onclick="pgUseCon('+i+')" title="'+esc(c.desc)+'">'+pgConArt(c)+'<div class="pjnm">'+esc(c.name)+'</div><small>'+esc(c.desc)+'</small><span class="use">tap to use</span></div>').join(''):'<span style="color:var(--text-dim);font-size:11px;font-weight:700">No consumables — open Arcana / Celestial / Spectral packs</span>';}
+
+let pgUid=0;
+function pgNewCard(rank,suit){const ri=PG_RANKS.indexOf(rank);return{uid:pgUid++,rank,suit,red:(suit==='♥'||suit==='♦'),rv:ri+2,baseChip:pgChip(rank),enh:null,seal:null,ed:null};}
+function pgNewDeck(){const d=[];PG_RANKS.forEach(r=>PG_SUITS.forEach(su=>d.push(pgNewCard(r,su))));return d;}
+function pgCardChips(c){let ch=(c.enh==='stone'?50:c.baseChip);if(c.enh==='bonus')ch+=30;if(c.ed==='foil')ch+=50;return ch;}
+function pgShuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function pgEval(cs){
+  const stones=cs.filter(c=>c.enh==='stone');
+  const real=cs.filter(c=>c.enh!=='stone');
+  const n=real.length;
+  const byRank={}; real.forEach(c=>{(byRank[c.rank]=byRank[c.rank]||[]).push(c);});
+  const groups=Object.values(byRank).sort((a,b)=>b.length-a.length||b[0].rv-a[0].rv);
+  const counts=groups.map(g=>g.length);
+  let isFlush=false;
+  if(n===5){const ns=real.filter(c=>c.enh!=='wild');isFlush=ns.length===0||ns.every(c=>c.suit===ns[0].suit);}
+  let isStraight=false;
+  if(n===5){const rvs=[...new Set(real.map(c=>c.rv))].sort((a,b)=>a-b);if(rvs.length===5&&(rvs[4]-rvs[0]===4||rvs.join(',')==='2,3,4,5,14'))isStraight=true;}
+  const mk=(type,scoring)=>({type,scoring:scoring.concat(stones)});
+  if(isStraight&&isFlush) return mk('Straight Flush',real);
+  if(counts[0]===4) return mk('Four of a Kind',groups[0]);
+  if(counts[0]===3&&counts[1]===2) return mk('Full House',real);
+  if(isFlush) return mk('Flush',real);
+  if(isStraight) return mk('Straight',real);
+  if(counts[0]===3) return mk('Three of a Kind',groups[0]);
+  if(counts[0]===2&&counts[1]===2) return mk('Two Pair',groups[0].concat(groups[1]));
+  if(counts[0]===2) return mk('Pair',groups[0]);
+  if(!real.length) return mk('High Card',[]);
+  return mk('High Card',[real.slice().sort((a,b)=>b.rv-a.rv)[0]]);
+}
+function pgScore(cs,resolve){
+  const e=pgEval(cs); let [chips,mult]=HV[e.type];
+  const lv=(PLAY.handLvl&&PLAY.handLvl[e.type])||0; chips+=lv*10; mult+=lv;
+  let xmult=1, money=0;
+  e.scoring.forEach(c=>{
+    const trig=(c.seal==='red')?2:1;
+    for(let t=0;t<trig;t++){
+      chips+=pgCardChips(c);
+      if(c.enh==='mult')mult+=4;
+      if(c.ed==='holo')mult+=10;
+      if(c.enh==='glass')xmult*=2;
+      if(c.ed==='poly')xmult*=1.5;
+      if(resolve){
+        if(c.seal==='gold')money+=3;
+        if(c.enh==='gold')money+=3;
+        if(c.enh==='lucky'){if(Math.random()<0.2)mult+=20;if(Math.random()<1/15)money+=20;}
+      }
+    }
+  });
+  const held=(PLAY.hand||[]).filter(h=>cs.indexOf(h)<0);
+  held.forEach(h=>{if(h.enh==='steel')xmult*=1.5;});
+  PLAY.jokers.forEach(j=>{const r=j.f({scoring:e.scoring,played:cs,type:e.type})||{}; chips+=r.c||0; mult+=r.m||0; if(r.x)xmult*=r.x;});
+  mult*=xmult;
+  return {type:e.type,chips,mult:Math.round(mult*100)/100,total:Math.round(chips*mult),money};
+}
+function pgFmtM(m){return Number.isInteger(m)?m:Math.round(m*10)/10;}
+
+let PLAY={phase:'menu'};
+function pgStart(){PLAY={phase:'select',ante:0,blind:0,money:4,jokers:[],hand:[],sel:new Set(),deck:[],deck52:pgNewDeck(),consumables:[],conCap:2,pack:null,score:0,hands:4,discards:3,shop:[],rerollCost:5,sortMode:'rank',msg:'',lastReward:null,jokerCap:5,handSize:8,curHandSize:8,handLvl:{},skips:0,handsPlayed:0,unusedDiscards:0,freeShop:false,freeReroll:false,doubleNext:false,extraHandNext:0,skipTag:null,tagMsg:'',showOdds:false};pgStartBlind();}
+function pgRollTag(){return TAGS[Math.floor(Math.random()*TAGS.length)].id;}
+function pgStartBlind(){const bd=BLINDDEF[PLAY.blind];PLAY.target=Math.round(ANTE_BASE[PLAY.ante]*bd.mult);PLAY.curHandSize=PLAY.handSize+PLAY.extraHandNext;PLAY.extraHandNext=0;PLAY.skipTag=PLAY.blind<2?pgRollTag():null;PLAY.showOdds=false;PLAY.phase='select';pgRender();}
+function pgBeginBlind(){PLAY.score=0;PLAY.hands=4;PLAY.discards=3;PLAY.sel=new Set();PLAY.deck=pgShuffle(PLAY.deck52.slice());PLAY.hand=[];PLAY.msg='';PLAY.tagMsg='';PLAY.phase='play';pgDraw();pgRender();}
+function pgToggleOdds(){PLAY.showOdds=!PLAY.showOdds;pgRender();}
+function pgGrantJoker(){if(PLAY.jokers.length<PLAY.jokerCap){const owned=new Set(PLAY.jokers.map(j=>j.id));const pool=GJOKERS.filter(j=>!owned.has(j.id));if(pool.length){PLAY.jokers.push(pool[Math.floor(Math.random()*pool.length)]);return true;}}return false;}
+function pgLevelHand(h,n){PLAY.handLvl[h]=(PLAY.handLvl[h]||0)+n;}
+function pgRandHand(){const ks=Object.keys(HV);return ks[Math.floor(Math.random()*ks.length)];}
+const TAG_FX={
+ tg_uncommon:()=>{if(pgGrantJoker())return'Gained a free Joker.';PLAY.money+=4;return'Slots full → +$4.';},
+ tg_rare:()=>{if(pgGrantJoker())return'Gained a free Joker.';PLAY.money+=6;return'Slots full → +$6.';},
+ tg_negative:()=>{PLAY.jokerCap++;const g=pgGrantJoker();return'Joker slots +1'+(g?' and a free Joker.':'.');},
+ tg_foil:()=>{PLAY.money+=5;return'Editions aren’t simulated → +$5.';},
+ tg_holographic:()=>{PLAY.money+=5;return'Editions aren’t simulated → +$5.';},
+ tg_polychrome:()=>{PLAY.money+=5;return'Editions aren’t simulated → +$5.';},
+ tg_investment:()=>{PLAY.money+=25;return'+$25.';},
+ tg_voucher:()=>{PLAY.money+=10;return'Vouchers aren’t simulated → +$10.';},
+ tg_boss:()=>{return'Boss reroll (no boss effects in this mini-game).';},
+ tg_standard:()=>{PLAY.money+=6;return'Standard Pack not simulated → +$6.';},
+ tg_charm:()=>{PLAY.money+=6;return'Arcana Pack not simulated → +$6.';},
+ tg_meteor:()=>{const h=pgRandHand();pgLevelHand(h,1);return'Leveled '+h+' +1.';},
+ tg_buffoon:()=>{const a=pgGrantJoker(),b=pgGrantJoker();if(a||b)return'Free Joker(s) from a Buffoon Pack.';PLAY.money+=6;return'Slots full → +$6.';},
+ tg_handy:()=>{const m=PLAY.handsPlayed;PLAY.money+=m;return'+$'+m+' ($1 per hand played).';},
+ tg_garbage:()=>{const m=PLAY.unusedDiscards;PLAY.money+=m;return'+$'+m+' ($1 per unused discard).';},
+ tg_ethereal:()=>{PLAY.money+=6;return'Spectral Pack not simulated → +$6.';},
+ tg_coupon:()=>{PLAY.freeShop=true;return'Next shop: all items free!';},
+ tg_double:()=>{PLAY.doubleNext=true;return'Your next Tag triggers twice.';},
+ tg_juggle:()=>{PLAY.extraHandNext+=3;return'+3 hand size next round.';},
+ tg_d6:()=>{PLAY.freeReroll=true;return'Next shop: rerolls are free.';},
+ tg_topup:()=>{const a=pgGrantJoker(),b=pgGrantJoker();return(a||b)?'Gained Joker(s).':'Joker slots full.';},
+ tg_speed:()=>{const m=5*PLAY.skips;PLAY.money+=m;return'+$'+m+' ($5 per blind skipped).';},
+ tg_orbital:()=>{const h=pgRandHand();pgLevelHand(h,3);return'Leveled '+h+' +3.';},
+ tg_economy:()=>{const g=Math.min(40,Math.max(0,PLAY.money));PLAY.money+=g;return'Doubled money → +$'+g+'.';}
+};
+function pgApplyTag(id){const fx=TAG_FX[id];return fx?fx():'No effect.';}
+function pgSkip(){const id=PLAY.skipTag;if(!id)return;PLAY.skips++;const wasDouble=PLAY.doubleNext;PLAY.doubleNext=false;let note=pgApplyTag(id);if(wasDouble&&id!=='tg_double')note+=' ×2 → '+pgApplyTag(id);PLAY.tagMsg=(byId[id]?byId[id].name:id)+' — '+note;pgGotoNext();}
+function pgGotoNext(){PLAY.blind++;if(PLAY.blind>2){PLAY.blind=0;PLAY.ante++;}if(PLAY.ante>=ANTE_BASE.length){PLAY.phase='win';pgRender();return;}pgStartBlind();}
+function pgDraw(){const hs=PLAY.curHandSize||8;while(PLAY.hand.length<hs&&PLAY.deck.length)PLAY.hand.push(PLAY.deck.pop());pgSort();}
+function pgSort(){const f=PLAY.sortMode;PLAY.hand.sort((a,b)=>f==='suit'?(PG_SUITS.indexOf(a.suit)-PG_SUITS.indexOf(b.suit)||b.rv-a.rv):(b.rv-a.rv||PG_SUITS.indexOf(a.suit)-PG_SUITS.indexOf(b.suit)));}
+function pgSortMode(m){PLAY.sortMode=m;pgSort();pgRender();}
+function pgSelect(uid){if(PLAY.sel.has(uid))PLAY.sel.delete(uid);else{if(PLAY.sel.size>=5)return;PLAY.sel.add(uid);}PLAY.msg='';pgRender();}
+function pgSelected(){return PLAY.hand.filter(c=>PLAY.sel.has(c.uid));}
+function pgPlay(){const cs=pgSelected();if(cs.length<1||cs.length>5)return;const r=pgScore(cs,true);PLAY.score+=r.total;if(r.money)PLAY.money+=r.money;PLAY.handsPlayed++;PLAY.hand=PLAY.hand.filter(c=>!PLAY.sel.has(c.uid));PLAY.sel=new Set();PLAY.hands--;PLAY.msg=r.type+': '+r.chips+' × '+pgFmtM(r.mult)+' = '+r.total.toLocaleString()+(r.money?' (+$'+r.money+')':'');if(PLAY.score>=PLAY.target){pgWinBlind();return;}if(PLAY.hands<=0){PLAY.phase='over';pgRender();return;}pgDraw();pgRender();}
+function pgDiscard(){if(PLAY.discards<=0)return;const cs=pgSelected();if(cs.length<1||cs.length>5)return;cs.forEach(c=>{if(c.seal==='purple')pgAddCons(()=>pgRandFrom(PG_TAROTS),1);});PLAY.hand=PLAY.hand.filter(c=>!PLAY.sel.has(c.uid));PLAY.sel=new Set();PLAY.discards--;pgDraw();pgRender();}
+function pgWinBlind(){const bd=BLINDDEF[PLAY.blind];(PLAY.hand||[]).forEach(c=>{if(c.seal==='blue')pgAddCons(()=>pgRandFrom(PG_PLANETS),1);});PLAY.unusedDiscards+=PLAY.discards;const interest=Math.min(5,Math.floor(PLAY.money/5));PLAY.lastReward={base:bd.reward,hands:PLAY.hands,interest};PLAY.money+=bd.reward+PLAY.hands+interest;if(PLAY.ante===ANTE_BASE.length-1&&PLAY.blind===2){PLAY.phase='win';pgRender();return;}PLAY.phase='shop';pgRollShop();pgRender();}
+function pgRollShop(){const owned=new Set(PLAY.jokers.map(j=>j.id));const pool=GJOKERS.filter(j=>!owned.has(j.id));PLAY.shop=pgShuffle(pool.slice()).slice(0,2);PLAY.shopPacks=pgShuffle(PG_PACKS.slice()).slice(0,2);}
+function pgBuy(id){const j=PLAY.shop.find(x=>x.id===id);if(!j)return;const cost=PLAY.freeShop?0:j.cost;if(PLAY.money<cost||PLAY.jokers.length>=PLAY.jokerCap)return;PLAY.money-=cost;PLAY.jokers.push(j);PLAY.shop=PLAY.shop.filter(x=>x.id!==id);pgRender();}
+function pgSell(i){const j=PLAY.jokers[i];if(!j)return;PLAY.money+=Math.max(1,Math.floor(j.cost/2));PLAY.jokers.splice(i,1);pgRender();}
+function pgReroll(){const c=PLAY.freeReroll?0:PLAY.rerollCost;if(PLAY.money<c)return;PLAY.money-=c;pgRollShop();pgRender();}
+function pgNext(){PLAY.freeShop=false;PLAY.freeReroll=false;pgGotoNext();}
+
+function pgRender(){
+  const v=document.getElementById('view-play');
+  if(PLAY.phase==='menu'){v.innerHTML='<div class="pgwrap"><div class="pover"><h2>🎴 Balatro — Mini Run</h2><p>Beat all 8 Antes. Play poker hands from a standard 52-card deck to reach each Blind’s target. Win cash, buy Jokers, and scale Chips × Mult.</p><button class="pbtn" style="max-width:240px;margin:16px auto 0" onclick="pgStart()">Start Run →</button><div style="margin-top:10px"><span class="tlink" onclick="go(\'tut\')">New to Balatro? Learn first →</span></div></div></div>';return;}
+  if(PLAY.phase==='over'||PLAY.phase==='win'){const win=PLAY.phase==='win';v.innerHTML='<div class="pgwrap"><div class="pover"><h2>'+(win?'🏆 You Win!':'💀 Game Over')+'</h2><div class="big '+(win?'win':'lose')+'">'+(win?'Ante 8 cleared':'Ante '+(PLAY.ante+1)+' · '+BLINDDEF[PLAY.blind].name)+'</div><p>'+(win?'You beat the whole run. Legendary.':'Ran out of hands before reaching the target ('+PLAY.score.toLocaleString()+' / '+PLAY.target.toLocaleString()+').')+'</p><button class="pbtn" style="max-width:240px;margin:16px auto 0" onclick="pgStart()">Play Again →</button></div></div>';return;}
+  if(PLAY.phase==='select'){
+    const bd=BLINDDEF[PLAY.blind];const tag=PLAY.skipTag?byId[PLAY.skipTag]:null;const prob=(100/TAGS.length).toFixed(1);
+    let body='<div class="pblind">Ante '+(PLAY.ante+1)+'/8 · '+bd.name+'</div>'+
+      '<div class="phud"><div class="pstat tgt">TARGET<b>'+PLAY.target.toLocaleString()+'</b></div><div class="pstat">REWARD<b>$'+bd.reward+'</b></div><div class="pstat cash">CASH<b>$'+PLAY.money+'</b></div></div>';
+    if(PLAY.tagMsg)body+='<div class="ptagmsg">🏷️ '+esc(PLAY.tagMsg)+'</div>';
+    if(PLAY.skipTag){
+      body+='<div class="pselrow">'+
+        '<button class="pbtn" onclick="pgBeginBlind()">▶ Play Round<small>Hit '+PLAY.target.toLocaleString()+' for $'+bd.reward+' + bonuses</small></button>'+
+        '<button class="pbtn skip" onclick="pgSkip()">⏭ Skip for Tag<small>'+(GLYPH[PLAY.skipTag]||'🏷️')+' '+esc(tag?tag.name:'')+' · '+prob+'%</small></button>'+
+      '</div>'+
+      (tag?'<div class="pbosswarn">Tag effect: '+esc(tag.effect)+'</div>':'')+
+      '<div class="podds"><span class="tog" onclick="pgToggleOdds()">'+(PLAY.showOdds?'▴ Hide tag odds':'▾ Show all tag odds')+'</span>'+
+        (PLAY.showOdds?'<div class="oddsgrid">'+TAGS.map(t=>'<div class="ocell'+(t.id===PLAY.skipTag?' hot':'')+'">'+(GLYPH[t.id]||'')+' '+esc(t.name.replace(/ Tag$/,''))+' <b>'+prob+'%</b></div>').join('')+'</div><div style="font-size:11px;color:var(--text-dim);margin-top:8px">Every tag is equally likely: 1 of '+TAGS.length+' = '+prob+'% each.</div>':'')+
+      '</div>';
+    } else {
+      body+='<div class="pselrow"><button class="pbtn" onclick="pgBeginBlind()">▶ Play Boss Blind<small>Hit '+PLAY.target.toLocaleString()+' for $'+bd.reward+'</small></button></div><div class="pbosswarn">Boss Blinds can’t be skipped.</div>';
+    }
+    v.innerHTML='<div class="pgwrap">'+body+'</div>';return;
+  }
+  if(PLAY.phase==='shop'){
+    const r=PLAY.lastReward||{base:0,hands:0,interest:0};const free=PLAY.freeShop;
+    const shelf=PLAY.shop.length?PLAY.shop.map(j=>{const cost=free?0:j.cost;const can=PLAY.money>=cost&&PLAY.jokers.length<PLAY.jokerCap;return '<div class="pbuy '+(can?'':'cant')+'"'+(can?' onclick="pgBuy(\''+j.id+'\')"':'')+'>'+pgJokerArt(j)+'<div class="nm">'+esc(j.name)+'</div><div class="ds">'+esc(j.desc)+'</div><div class="pr">'+(free?'FREE':'$'+j.cost)+'</div></div>';}).join(''):'<div style="color:#6b6450;font-weight:700">Sold out — reroll for more</div>';
+    const owned=PLAY.jokers.length?PLAY.jokers.map((j,i)=>'<div class="pjok" onclick="pgSell('+i+')" title="Sell">'+pgJokerArt(j)+'<div class="pjnm">'+esc(j.name)+'</div><small>'+esc(j.desc)+'</small><span class="sell">tap to sell $'+Math.max(1,Math.floor(j.cost/2))+'</span></div>').join(''):'<span style="color:#6b6450;font-size:12px;font-weight:700">No Jokers yet</span>';
+    const packs=(PLAY.shopPacks||[]).length?PLAY.shopPacks.map(pk=>{const cost=free?0:pk.cost;const can=PLAY.money>=cost;const card=byId[pk.art]||{id:pk.art,type:'Booster',rarity:'Booster',name:pk.name,img:''};return '<div class="pbuy '+(can?'':'cant')+'"'+(can?' onclick="pgBuyPack(\''+pk.id+'\')"':'')+'>'+artHTML(card,'pjart')+'<div class="nm">'+esc(pk.name)+'</div><div class="ds">Pick '+pk.pick+' of '+pk.size+'</div><div class="pr">'+(free?'FREE':'$'+pk.cost)+'</div></div>';}).join(''):'<div style="color:#6b6450;font-weight:700">Sold out</div>';
+    const cons=pgConRow();
+    const rc=PLAY.freeReroll?0:PLAY.rerollCost;const flags=[];if(PLAY.freeShop)flags.push('🏷️ items free');if(PLAY.freeReroll)flags.push('🎲 free rerolls');
+    v.innerHTML='<div class="pgwrap"><div class="pshop"><h2>🛒 Shop</h2><div class="sub">Cashed out: <b>$'+r.base+'</b> reward + <b>$'+r.hands+'</b> hands left + <b>$'+r.interest+'</b> interest = <b>+$'+(r.base+r.hands+r.interest)+'</b><br>You have <b>$'+PLAY.money+'</b> · Jokers '+PLAY.jokers.length+'/'+PLAY.jokerCap+' · Consumables '+PLAY.consumables.length+'/'+PLAY.conCap+(flags.length?' · '+flags.join(' · '):'')+'</div><div class="lbl">Jokers for sale</div><div class="pshelf">'+shelf+'</div><div class="lbl">Booster packs</div><div class="pshelf">'+packs+'</div><div class="lbl">Your Jokers (tap to sell)</div><div class="pjokers" style="justify-content:flex-start">'+owned+'</div><div class="lbl">Consumables (tap to use)</div><div class="pcons">'+cons+'</div><div class="row"><button class="pbtn sec" onclick="pgReroll()"'+(PLAY.money<rc?' disabled':'')+'>↻ Reroll '+(rc?'$'+rc:'FREE')+'</button><button class="pbtn" onclick="pgNext()">Next Round →</button></div></div></div>';return;
+  }
+  if(PLAY.phase==='pack'){
+    const pk=PLAY.pack;const done=pk.picked>=pk.pick;
+    const tiles=pk.items.map((it,i)=>{const taken=it._taken;let inner,nm,ds;
+      if(pk.kind==='Card'){inner=pgPlayCardHTML(it,false,false,'');nm=it.rank+it.suit;ds=(it.enh?pgEnhAbbr(it.enh)+' ':'')+(it.ed?it.ed+' ':'')+(it.seal?it.seal+' seal':'');}
+      else if(pk.kind==='Joker'){inner=pgJokerArt(it);nm=it.name;ds=it.desc;}
+      else{inner=pgConArt(it);nm=it.name;ds=it.desc;}
+      return '<div class="pbuy'+(taken?' cant':'')+'"'+((!taken&&!done)?' onclick="pgTakePack('+i+')"':'')+'>'+(pk.kind==='Card'?'<div style="display:flex;justify-content:center;margin-bottom:6px">'+inner+'</div>':inner)+'<div class="nm">'+esc(nm)+'</div><div class="ds">'+esc(ds||'')+'</div><div class="pr">'+(taken?'✓ taken':'take')+'</div></div>';}).join('');
+    v.innerHTML='<div class="pgwrap"><div class="pshop"><h2>'+esc(pk.name)+'</h2><div class="sub">Choose <b>'+pk.pick+'</b> of '+pk.items.length+'</div><div class="pshelf">'+tiles+'</div>'+(PLAY.msg?'<div class="ptagmsg">'+esc(PLAY.msg)+'</div>':'')+'<div class="row"><button class="pbtn" onclick="pgClosePack()">'+(done?'Continue →':'Skip pack →')+'</button></div></div></div>';return;
+  }
+  // play board
+  const sel=pgSelected();let preview='Select 1–5 cards to play or discard';let scoreIds=new Set();
+  if(sel.length){const e=pgEval(sel);scoreIds=new Set(e.scoring.map(c=>c.uid));const s=pgScore(sel);preview='<b>'+s.type+'</b> · '+s.chips+' × '+pgFmtM(s.mult)+' = <b>'+s.total.toLocaleString()+'</b>';}
+  const cards=PLAY.hand.map(c=>{const sd=PLAY.sel.has(c.uid),sc=sd&&scoreIds.has(c.uid);return pgPlayCardHTML(c,sd,sc,'pgSelect('+c.uid+')');}).join('');
+  const lvls=Object.keys(PLAY.handLvl).filter(k=>PLAY.handLvl[k]>0).map(k=>k+' +'+PLAY.handLvl[k]);
+  const jok=PLAY.jokers.length?PLAY.jokers.map(j=>'<div class="pjok" title="'+esc(j.desc)+'">'+pgJokerArt(j)+'<div class="pjnm">'+esc(j.name)+'</div><small>'+esc(j.desc)+'</small></div>').join(''):'<span style="color:var(--text-dim);font-size:11px;font-weight:700">No Jokers yet — win a round and visit the shop</span>';
+  const canPlay=sel.length>=1&&sel.length<=5,canDisc=canPlay&&PLAY.discards>0;
+  v.innerHTML='<div class="pgwrap"><div class="pblind">Ante '+(PLAY.ante+1)+'/8 · '+BLINDDEF[PLAY.blind].name+'</div>'+
+    '<div class="phud"><div class="pstat tgt">TARGET<b>'+PLAY.target.toLocaleString()+'</b></div><div class="pstat scr">SCORE<b>'+PLAY.score.toLocaleString()+'</b></div><div class="pstat">HANDS<b>'+PLAY.hands+'</b></div><div class="pstat">DISCARDS<b>'+PLAY.discards+'</b></div><div class="pstat cash">CASH<b>$'+PLAY.money+'</b></div></div>'+
+    '<div class="pjokers">'+jok+'</div>'+
+    '<div class="pcons">'+pgConRow()+'</div>'+
+    (lvls.length?'<div class="ppreview" style="color:#7fd3a3;font-size:11px">Hand levels: '+lvls.join(' · ')+'</div>':'')+
+    '<div class="psort"><button class="'+(PLAY.sortMode==='rank'?'on':'')+'" onclick="pgSortMode(\'rank\')">Sort: Rank</button><button class="'+(PLAY.sortMode==='suit'?'on':'')+'" onclick="pgSortMode(\'suit\')">Sort: Suit</button></div>'+
+    '<div class="phand">'+cards+'</div>'+
+    '<div class="ppreview">'+(sel.length?preview:(PLAY.msg?'<span style="color:var(--gold)">Last: '+PLAY.msg+'</span>':preview))+'</div>'+
+    '<div class="pacts"><button class="pbtn disc" onclick="pgDiscard()"'+(canDisc?'':' disabled')+'>Discard ('+PLAY.discards+')</button><button class="pbtn" onclick="pgPlay()"'+(canPlay?'':' disabled')+'>Play Hand ('+PLAY.hands+')</button></div></div>';
+}
+
+buildTopNav();renderChips();renderGrid();renderSyn();renderDecks();renderQuizHome();renderTut();pgRender();
+</script>
+</body>
+</html>

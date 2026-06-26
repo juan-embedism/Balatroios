@@ -1,0 +1,258 @@
+# Balatrodex artwork filenames
+# Put files in:  art/<filename>
+# Any missing file keeps the built-in glyph.
+
+# TOTAL FILES: 241
+
+## JOKERS (150)
+joker.png   <- Joker
+greedy.png   <- Greedy Joker
+lusty.png   <- Lusty Joker
+wrathful.png   <- Wrathful Joker
+gluttonous.png   <- Gluttonous Joker
+jolly.png   <- Jolly Joker
+zany.png   <- Zany Joker
+mad.png   <- Mad Joker
+crazy.png   <- Crazy Joker
+droll.png   <- Droll Joker
+sly.png   <- Sly Joker
+wily.png   <- Wily Joker
+clever.png   <- Clever Joker
+devious.png   <- Devious Joker
+crafty.png   <- Crafty Joker
+half.png   <- Half Joker
+stencil.png   <- Joker Stencil
+fourfingers.png   <- Four Fingers
+mime.png   <- Mime
+creditcard.png   <- Credit Card
+dagger.png   <- Ceremonial Dagger
+banner.png   <- Banner
+mysticsummit.png   <- Mystic Summit
+marble.png   <- Marble Joker
+loyalty.png   <- Loyalty Card
+eightball.png   <- 8 Ball
+misprint.png   <- Misprint
+dusk.png   <- Dusk
+raisedfist.png   <- Raised Fist
+chaos.png   <- Chaos the Clown
+fibonacci.png   <- Fibonacci
+steeljoker.png   <- Steel Joker
+scaryface.png   <- Scary Face
+abstract.png   <- Abstract Joker
+gratification.png   <- Delayed Gratification
+hack.png   <- Hack
+pareidolia.png   <- Pareidolia
+grosmichel.png   <- Gros Michel
+evensteven.png   <- Even Steven
+oddtodd.png   <- Odd Todd
+scholar.png   <- Scholar
+businesscard.png   <- Business Card
+supernova.png   <- Supernova
+ridethebus.png   <- Ride the Bus
+spacejoker.png   <- Space Joker
+egg.png   <- Egg
+burglar.png   <- Burglar
+blackboard.png   <- Blackboard
+runner.png   <- Runner
+icecream.png   <- Ice Cream
+dna.png   <- DNA
+splash.png   <- Splash
+bluejoker.png   <- Blue Joker
+sixthsense.png   <- Sixth Sense
+constellation.png   <- Constellation
+hiker.png   <- Hiker
+faceless.png   <- Faceless Joker
+greenjoker.png   <- Green Joker
+superposition.png   <- Superposition
+todolist.png   <- To Do List
+cavendish.png   <- Cavendish
+cardsharp.png   <- Card Sharp
+redcard.png   <- Red Card
+madness.png   <- Madness
+squarejoker.png   <- Square Joker
+seance.png   <- Séance
+riffraff.png   <- Riff-Raff
+vampire.png   <- Vampire
+shortcut.png   <- Shortcut
+hologram.png   <- Hologram
+vagabond.png   <- Vagabond
+baron.png   <- Baron
+cloud9.png   <- Cloud 9
+rocket.png   <- Rocket
+obelisk.png   <- Obelisk
+midasmask.png   <- Midas Mask
+luchador.png   <- Luchador
+photograph.png   <- Photograph
+giftcard.png   <- Gift Card
+turtlebean.png   <- Turtle Bean
+erosion.png   <- Erosion
+reservedparking.png   <- Reserved Parking
+mailinrebate.png   <- Mail-In Rebate
+tothemoon.png   <- To the Moon
+hallucination.png   <- Hallucination
+fortuneteller.png   <- Fortune Teller
+juggler.png   <- Juggler
+drunkard.png   <- Drunkard
+stonejoker.png   <- Stone Joker
+goldenjoker.png   <- Golden Joker
+luckycat.png   <- Lucky Cat
+baseballcard.png   <- Baseball Card
+bull.png   <- Bull
+dietcola.png   <- Diet Cola
+tradingcard.png   <- Trading Card
+flashcard.png   <- Flash Card
+popcorn.png   <- Popcorn
+sparetrousers.png   <- Spare Trousers
+ancientjoker.png   <- Ancient Joker
+ramen.png   <- Ramen
+walkietalkie.png   <- Walkie Talkie
+seltzer.png   <- Seltzer
+castle.png   <- Castle
+smileyface.png   <- Smiley Face
+campfire.png   <- Campfire
+goldenticket.png   <- Golden Ticket
+mrbones.png   <- Mr. Bones
+acrobat.png   <- Acrobat
+sockandbuskin.png   <- Sock and Buskin
+swashbuckler.png   <- Swashbuckler
+troubadour.png   <- Troubadour
+certificate.png   <- Certificate
+smeared.png   <- Smeared Joker
+throwback.png   <- Throwback
+hangingchad.png   <- Hanging Chad
+roughgem.png   <- Rough Gem
+bloodstone.png   <- Bloodstone
+arrowhead.png   <- Arrowhead
+onyxagate.png   <- Onyx Agate
+glassjoker.png   <- Glass Joker
+showman.png   <- Showman
+flowerpot.png   <- Flower Pot
+blueprint.png   <- Blueprint
+weejoker.png   <- Wee Joker
+merryandy.png   <- Merry Andy
+oops.png   <- Oops! All 6s
+theidol.png   <- The Idol
+seeingdouble.png   <- Seeing Double
+matador.png   <- Matador
+hitTheRoad.png   <- Hit the Road
+duo.png   <- The Duo
+trio.png   <- The Trio
+family.png   <- The Family
+order.png   <- The Order
+tribe.png   <- The Tribe
+stuntman.png   <- Stuntman
+invisible.png   <- Invisible Joker
+brainstorm.png   <- Brainstorm
+satellite.png   <- Satellite
+shootthemoon.png   <- Shoot the Moon
+driverslicense.png   <- Drivers License
+cartomancer.png   <- Cartomancer
+astronomer.png   <- Astronomer
+burnt.png   <- Burnt Joker
+bootstraps.png   <- Bootstraps
+canio.png   <- Canio
+triboulet.png   <- Triboulet
+yorick.png   <- Yorick
+chicot.png   <- Chicot
+perkeo.png   <- Perkeo
+
+## TAROTS (22)
+fool.png   <- The Fool
+magician.png   <- The Magician
+highpriestess.png   <- The High Priestess
+empress.png   <- The Empress
+emperor.png   <- The Emperor
+hierophant.png   <- The Hierophant
+lovers.png   <- The Lovers
+chariot.png   <- The Chariot
+justice.png   <- Justice
+hermit.png   <- The Hermit
+wheel.png   <- The Wheel of Fortune
+strength.png   <- Strength
+hangedman.png   <- The Hanged Man
+death.png   <- Death
+temperance.png   <- Temperance
+devil.png   <- The Devil
+tower.png   <- The Tower
+star.png   <- The Star
+moon.png   <- The Moon
+sun.png   <- The Sun
+judgement.png   <- Judgement
+world.png   <- The World
+
+## PLANETS (12)
+pluto.png   <- Pluto
+mercury.png   <- Mercury
+uranus.png   <- Uranus
+venus.png   <- Venus
+saturn.png   <- Saturn
+jupiter.png   <- Jupiter
+earth.png   <- Earth
+mars.png   <- Mars
+neptune.png   <- Neptune
+planetx.png   <- Planet X
+ceres.png   <- Ceres
+eris.png   <- Eris
+
+## SPECTRALS (18)
+familiar.png   <- Familiar
+grim.png   <- Grim
+incantation.png   <- Incantation
+talisman.png   <- Talisman
+aura.png   <- Aura
+wraith.png   <- Wraith
+sigil.png   <- Sigil
+ouija.png   <- Ouija
+ectoplasm.png   <- Ectoplasm
+immolate.png   <- Immolate
+ankh.png   <- Ankh
+dejavu.png   <- Deja Vu
+hex.png   <- Hex
+trance.png   <- Trance
+medium.png   <- Medium
+cryptid.png   <- Cryptid
+soul.png   <- The Soul
+blackhole.png   <- Black Hole
+
+## DECKS (15)
+red.png   <- Red Deck
+blue.png   <- Blue Deck
+yellow.png   <- Yellow Deck
+green.png   <- Green Deck
+black.png   <- Black Deck
+magic.png   <- Magic Deck
+nebula.png   <- Nebula Deck
+ghost.png   <- Ghost Deck
+abandoned.png   <- Abandoned Deck
+checkered.png   <- Checkered Deck
+zodiac.png   <- Zodiac Deck
+painted.png   <- Painted Deck
+anaglyph.png   <- Anaglyph Deck
+plasma.png   <- Plasma Deck
+erratic.png   <- Erratic Deck
+
+## TAGS (24)
+tg_uncommon.png   <- Uncommon Tag
+tg_rare.png   <- Rare Tag
+tg_negative.png   <- Negative Tag
+tg_foil.png   <- Foil Tag
+tg_holographic.png   <- Holographic Tag
+tg_polychrome.png   <- Polychrome Tag
+tg_investment.png   <- Investment Tag
+tg_voucher.png   <- Voucher Tag
+tg_boss.png   <- Boss Tag
+tg_standard.png   <- Standard Tag
+tg_charm.png   <- Charm Tag
+tg_meteor.png   <- Meteor Tag
+tg_buffoon.png   <- Buffoon Tag
+tg_handy.png   <- Handy Tag
+tg_garbage.png   <- Garbage Tag
+tg_ethereal.png   <- Ethereal Tag
+tg_coupon.png   <- Coupon Tag
+tg_double.png   <- Double Tag
+tg_juggle.png   <- Juggle Tag
+tg_d6.png   <- D6 Tag
+tg_topup.png   <- Top-up Tag
+tg_speed.png   <- Speed Tag
+tg_orbital.png   <- Orbital Tag
+tg_economy.png   <- Economy Tag
