@@ -1,4 +1,4 @@
-const CACHE = 'balatrodex-v1';
+const CACHE = 'balatrodex-v2';
 const ASSETS = [
   "./index.html",
   "./manifest.webmanifest",

@@ -16,16 +16,24 @@
   --text-dim:#bcd4c6;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{height:100%}
+html{height:100%}
 body{
   font-family:-apple-system,"SF Pro Rounded",ui-rounded,"Segoe UI",Roboto,sans-serif;
-  background:
-    radial-gradient(ellipse at 50% -10%, #2c6a4e 0%, var(--felt) 45%, var(--felt-dark) 100%) fixed,
-    var(--felt);
+  background:var(--felt);
   color:#f3efe2;
+  min-height:100%;
+  min-height:100dvh;
   padding-bottom:calc(74px + env(safe-area-inset-bottom));
-  overscroll-behavior-y:contain;
+  overscroll-behavior-y:none;
+  -webkit-overflow-scrolling:touch;
 }
+/* fixed gradient backdrop as its own layer — avoids background-attachment:fixed jank on iOS */
+body::before{
+  content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:radial-gradient(ellipse at 50% -10%, #2c6a4e 0%, var(--felt) 45%, var(--felt-dark) 100%);
+}
+/* body scroll-lock while a modal sheet is open (iOS-safe fixed-position technique) */
+body.locked{position:fixed;left:0;right:0;width:100%;overflow:hidden}
 /* ---------- header ---------- */
 header{
   position:sticky;top:0;z-index:40;
@@ -45,23 +53,27 @@ header.nav-hidden{transform:translateY(-100%)}
   border-radius:9px;padding:7px 12px;font-size:13px;font-weight:800;cursor:pointer;
   font-family:inherit;display:flex;align-items:center;gap:5px;transition:background .15s,color .15s,border-color .15s;
 }
-.tnbtn:hover,.tnbtn.on{background:var(--gold);color:#211a05;border-color:#8a6a14}
-.tnbtn .car{font-size:10px;opacity:.85}
+.tnbtn.on{background:var(--gold);color:#211a05;border-color:#8a6a14}
+@media (hover:hover) and (pointer:fine){.tnbtn:hover{background:var(--gold);color:#211a05;border-color:#8a6a14}}
+.tnbtn .car{font-size:10px;opacity:.85;transition:transform .18s ease}
+.tnitem.open .tnbtn .car{transform:rotate(180deg)}
 .tndrop{
   position:absolute;top:calc(100% + 7px);left:50%;
-  min-width:166px;max-height:64vh;overflow-y:auto;
+  min-width:166px;max-height:64vh;overflow-y:auto;-webkit-overflow-scrolling:touch;
   background:var(--card);border:3px solid var(--card-edge);border-radius:12px;
   box-shadow:0 8px 0 rgba(0,0,0,.35);padding:6px;z-index:70;
   opacity:0;visibility:hidden;pointer-events:none;
   transform:translateX(-50%) translateY(-7px);
   transition:opacity .18s ease,transform .18s ease,visibility .18s;
 }
-.tnitem:hover .tndrop{opacity:1;visibility:visible;pointer-events:auto;transform:translateX(-50%) translateY(0)}
-.tndrop a{display:flex;align-items:center;justify-content:space-between;gap:10px;
+.tnitem.open .tndrop{opacity:1;visibility:visible;pointer-events:auto;transform:translateX(-50%) translateY(0)}
+.tndrop a,.tndrop .hassub{display:flex;align-items:center;justify-content:space-between;gap:10px;
   padding:8px 11px;border-radius:8px;color:var(--ink);font-size:13px;font-weight:700;
   white-space:nowrap;cursor:pointer;position:relative}
-.tndrop a:hover{background:rgba(0,0,0,.08)}
-.tndrop a .car{font-size:11px;opacity:.6}
+@media (hover:hover) and (pointer:fine){.tndrop a:hover,.tndrop .hassub:hover{background:rgba(0,0,0,.08)}}
+.tndrop a:active,.tndrop .hassub:active{background:rgba(0,0,0,.12)}
+.tndrop a .car{font-size:11px;opacity:.6;transition:transform .15s ease}
+.hassub.open>.car{transform:rotate(90deg)}
 .tnsub{
   position:absolute;top:-3px;left:calc(100% + 5px);
   min-width:140px;background:var(--card);border:3px solid var(--card-edge);border-radius:12px;
@@ -69,7 +81,15 @@ header.nav-hidden{transform:translateY(-100%)}
   opacity:0;visibility:hidden;pointer-events:none;transform:translateX(-6px);
   transition:opacity .15s ease,transform .15s ease,visibility .15s;
 }
-.hassub:hover .tnsub{opacity:1;visibility:visible;pointer-events:auto;transform:none}
+.hassub.open .tnsub{opacity:1;visibility:visible;pointer-events:auto;transform:none}
+/* on narrow screens the side-flyout has nowhere to go — drop it inline instead */
+@media (max-width:600px){
+  .tndrop .hassub{flex-wrap:wrap}
+  .tnsub{position:static;left:auto;top:auto;min-width:0;width:100%;margin:6px 0 0;
+    box-shadow:none;border-width:2px;transform:none;
+    display:none;opacity:1;visibility:visible;pointer-events:auto;}
+  .hassub.open .tnsub{display:block}
+}
 .topnav.suppress .tndrop,.topnav.suppress .tnsub{opacity:0!important;visibility:hidden!important;pointer-events:none!important}
 .brand{display:flex;align-items:baseline;gap:8px;margin-bottom:8px}
 .brand h1{
@@ -161,14 +181,22 @@ main{padding:12px 12px 24px}
 }
 .overlay.show{display:flex}
 .sheet{
-  width:100%;max-width:560px;max-height:88vh;overflow-y:auto;
+  width:100%;max-width:560px;max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch;
   background:var(--card);color:var(--ink);
   border:3px solid var(--card-edge);
   border-radius:18px;
   padding:16px 16px 20px;
   box-shadow:0 6px 0 rgba(0,0,0,.35);
   animation:up .18s ease;
+  position:relative;
 }
+.sheetclose{
+  position:absolute;top:10px;right:10px;width:34px;height:34px;border-radius:9px;
+  border:2px solid var(--card-edge);background:#e8e1cb;color:#4c4838;
+  font-size:16px;font-weight:900;font-family:inherit;cursor:pointer;line-height:1;
+  display:flex;align-items:center;justify-content:center;z-index:2;
+}
+.sheetclose:active{transform:translateY(1px)}
 @keyframes up{from{transform:translateY(24px) scale(.97);opacity:.4}to{transform:none;opacity:1}}
 .sheet .grab{width:44px;height:5px;border-radius:3px;background:#c9c2ab;margin:0 auto 12px}
 .dhead{display:flex;gap:12px;align-items:flex-start}
@@ -1026,7 +1054,7 @@ function renderGrid(){
 function openCard(id){
   const c=byId[id]; if(!c)return;
   const rels=SYNERGIES.filter(s=>s.ids.includes(id));
-  let html='<div class="grab"></div><div class="dhead">'+artHTML(c,'dart')+
+  let html='<div class="grab"></div><button class="sheetclose" onclick="closeOverlay()" aria-label="Close">✕</button><div class="dhead">'+artHTML(c,'dart')+
     '<div><div class="dtitle">'+esc(c.name)+'</div><div class="badges">'+
     '<span class="badge" style="background:'+RCOLOR[c.rarity]+'">'+c.rarity+'</span>'+
     (c.cost?'<span class="badge b-cost">$'+c.cost+'</span>':'')+
@@ -1040,11 +1068,28 @@ function openCard(id){
       rels.map(s=>'<span class="relcard">\uD83D\uDD17 '+esc(s.name)+'</span>').join('')+'</div>';
   }
   document.getElementById('sheet').innerHTML=html;
-  document.getElementById('overlay').classList.add('show');
+  openOverlay();
+}
+let _lockY=0;
+function openOverlay(){
+  _lockY=window.scrollY||0;
+  const ov=document.getElementById('overlay');
+  ov.classList.add('show');
+  document.body.style.top=(-_lockY)+'px';
+  document.body.classList.add('locked');
+}
+function closeOverlay(){
+  const ov=document.getElementById('overlay');
+  ov.classList.remove('show');
+  document.body.classList.remove('locked');
+  document.body.style.top='';
+  window.scrollTo(0,_lockY);
+  document.getElementById('sheet').scrollTop=0;
 }
 document.getElementById('overlay').addEventListener('click',e=>{
-  if(e.target.id==='overlay')document.getElementById('overlay').classList.remove('show');
+  if(e.target.id==='overlay')closeOverlay();
 });
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeOverlay();});
 
 // ---------- synergies view ----------
 const TIERCOLOR={S:'var(--mult)',A:'var(--gold)',B:'var(--chip)',C:'#6b6450'};
@@ -1064,11 +1109,11 @@ function renderDecks(){
 }
 function openDeck(id){
   const c=DECKS.find(d=>d.id===id); if(!c)return;
-  document.getElementById('sheet').innerHTML='<div class="grab"></div><div class="dhead">'+artHTML(c,'dart')+
+  document.getElementById('sheet').innerHTML='<div class="grab"></div><button class="sheetclose" onclick="closeOverlay()" aria-label="Close">✕</button><div class="dhead">'+artHTML(c,'dart')+
     '<div><div class="dtitle">'+esc(c.name)+'</div><div class="badges"><span class="badge" style="background:var(--gold);color:#211a05">Deck</span></div></div></div>'+
     '<div class="effectbox"><span class="lbl">Effect</span>'+esc(c.effect)+'</div>'+
     '<div class="notes"><span class="secthead">Notes</span>'+esc(c.notes)+'</div>';
-  document.getElementById('overlay').classList.add('show');
+  openOverlay();
 }
 
 // ---------- quiz ----------
@@ -1162,24 +1207,57 @@ function go(v){
   document.getElementById('searchrow').style.display=v==='cards'?'flex':'none';
   document.getElementById('typechips').style.display=v==='cards'?'flex':'none';
   document.getElementById('raritychips').style.display=(v==='cards'&&(typeF==='Joker'||typeF==='All'))?'flex':'none';
+  if(typeof closeMenus==='function')closeMenus();
   window.scrollTo(0,0);
 }
 document.getElementById('search').addEventListener('input',e=>{q=e.target.value.trim().toLowerCase();renderGrid();});
 
-// ---------- top dropdown nav ----------
-function suppressNav(){const t=document.getElementById('topnav');t.classList.add('suppress');setTimeout(()=>t.classList.remove('suppress'),350);}
-function cardsTo(type,rarity){go('cards');setType(type||'All');if(rarity)setRarity(rarity);suppressNav();}
-function synTo(i){go('syn');const el=document.getElementById('syn-'+i);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});suppressNav();}
-function deckTo(id){go('decks');openDeck(id);suppressNav();}
-function quizTo(mode){go('quiz');startQuiz(mode);suppressNav();}
+// ---------- top dropdown nav (tap-driven, iOS-safe) ----------
+function closeMenus(){
+  document.querySelectorAll('.tnitem.open,.hassub.open').forEach(el=>el.classList.remove('open'));
+  document.querySelectorAll('.tndrop').forEach(d=>d.style.transform='');
+}
+function tnTap(e,section,btn){
+  e.stopPropagation();
+  const item=btn.closest('.tnitem');
+  const wasOpen=item.classList.contains('open');
+  closeMenus();
+  go(section);
+  if(!wasOpen){item.classList.add('open');clampDropdown(item);}
+}
+// keep an opened dropdown fully on-screen (edge buttons would otherwise overflow)
+function clampDropdown(item){
+  const dd=item.querySelector('.tndrop'); if(!dd)return;
+  dd.style.transform='translateX(-50%) translateY(0)';   // reset to centered
+  requestAnimationFrame(()=>{
+    const r=dd.getBoundingClientRect(), pad=8, vw=window.innerWidth;
+    let shift=0;
+    if(r.left<pad)shift=pad-r.left;
+    else if(r.right>vw-pad)shift=(vw-pad)-r.right;
+    if(shift)dd.style.transform='translateX(calc(-50% + '+Math.round(shift)+'px)) translateY(0)';
+  });
+}
+function hassubTap(e,a){
+  e.stopPropagation();
+  a.classList.toggle('open');
+}
+// close any open menu when tapping elsewhere
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.tnitem'))closeMenus();
+},true);
+function suppressNav(){closeMenus();}
+function cardsTo(type,rarity){go('cards');setType(type||'All');if(rarity)setRarity(rarity);closeMenus();}
+function synTo(i){go('syn');const el=document.getElementById('syn-'+i);if(el)el.scrollIntoView({behavior:'smooth',block:'start'});closeMenus();}
+function deckTo(id){go('decks');openDeck(id);closeMenus();}
+function quizTo(mode){go('quiz');startQuiz(mode);closeMenus();}
 function buildTopNav(){
   const typeItems=TYPES.filter(t=>t!=='All').map(t=>{
     if(t==='Joker'){
-      return '<a class="hassub" onclick="cardsTo(\'Joker\')">Jokers<span class="car">›</span>'+
+      return '<div class="hassub" onclick="hassubTap(event,this)">Jokers<span class="car">›</span>'+
         '<div class="tnsub">'+
         '<a onclick="event.stopPropagation();cardsTo(\'Joker\',\'All\')">All rarities</a>'+
         RARITIES.filter(r=>r!=='All').map(r=>'<a onclick="event.stopPropagation();cardsTo(\'Joker\',\''+r+'\')">'+r+'</a>').join('')+
-        '</div></a>';
+        '</div></div>';
     }
     return '<a onclick="cardsTo(\''+t+'\')">'+t+'s</a>';
   }).join('');
@@ -1189,22 +1267,37 @@ function buildTopNav(){
   const quizDrop=MODES.map(m=>'<a onclick="quizTo(\''+m.id+'\')">'+m.qi+' '+esc(m.qt)+'</a>').join('');
   const tutDrop=TUT.map((c,i)=>'<a onclick="tutTo('+i+')">'+(i+1)+'. '+esc(c.title)+'</a>').join('');
   document.getElementById('topnav').innerHTML=
-    '<div class="tnitem"><button class="tnbtn on" id="tn-cards" onclick="go(\'cards\')">Cards<span class="car">▾</span></button><div class="tndrop">'+cardsDrop+'</div></div>'+
-    '<div class="tnitem"><button class="tnbtn" id="tn-syn" onclick="go(\'syn\')">Synergies<span class="car">▾</span></button><div class="tndrop">'+synDrop+'</div></div>'+
-    '<div class="tnitem"><button class="tnbtn" id="tn-decks" onclick="go(\'decks\')">Decks<span class="car">▾</span></button><div class="tndrop">'+deckDrop+'</div></div>'+
-    '<div class="tnitem"><button class="tnbtn" id="tn-tut" onclick="go(\'tut\')">Tutorial<span class="car">▾</span></button><div class="tndrop">'+tutDrop+'</div></div>'+
-    '<div class="tnitem"><button class="tnbtn" id="tn-play" onclick="go(\'play\')">Play<span class="car">▾</span></button><div class="tndrop"><a onclick="pgStart();go(\'play\');suppressNav()">🎮 New run</a><a onclick="go(\'tut\');suppressNav()">📖 How to play</a></div></div>'+
-    '<div class="tnitem"><button class="tnbtn" id="tn-quiz" onclick="go(\'quiz\')">Quiz<span class="car">▾</span></button><div class="tndrop">'+quizDrop+'</div></div>';
+    '<div class="tnitem"><button class="tnbtn on" id="tn-cards" onclick="tnTap(event,\'cards\',this)">Cards<span class="car">▾</span></button><div class="tndrop">'+cardsDrop+'</div></div>'+
+    '<div class="tnitem"><button class="tnbtn" id="tn-syn" onclick="tnTap(event,\'syn\',this)">Synergies<span class="car">▾</span></button><div class="tndrop">'+synDrop+'</div></div>'+
+    '<div class="tnitem"><button class="tnbtn" id="tn-decks" onclick="tnTap(event,\'decks\',this)">Decks<span class="car">▾</span></button><div class="tndrop">'+deckDrop+'</div></div>'+
+    '<div class="tnitem"><button class="tnbtn" id="tn-tut" onclick="tnTap(event,\'tut\',this)">Tutorial<span class="car">▾</span></button><div class="tndrop">'+tutDrop+'</div></div>'+
+    '<div class="tnitem"><button class="tnbtn" id="tn-play" onclick="tnTap(event,\'play\',this)">Play<span class="car">▾</span></button><div class="tndrop"><a onclick="pgStart();go(\'play\');closeMenus()">🎮 New run</a><a onclick="go(\'tut\');closeMenus()">📖 How to play</a></div></div>'+
+    '<div class="tnitem"><button class="tnbtn" id="tn-quiz" onclick="tnTap(event,\'quiz\',this)">Quiz<span class="car">▾</span></button><div class="tndrop">'+quizDrop+'</div></div>';
 }
 function tutTo(i){go('tut');tutGo(i);suppressNav();}
-// hide the header (with the top nav) on scroll-down, reveal it on scroll-up
-let _lastY=0;
-window.addEventListener('scroll',()=>{
-  const y=window.scrollY||document.documentElement.scrollTop;
+// hide the header (with the top nav) on scroll-down, reveal it on scroll-up.
+// iOS-robust: rAF-throttled, ignores rubber-band overscroll, uses a movement threshold.
+let _lastY=0,_ticking=false;
+function onScrollHeader(){
   const h=document.querySelector('header');
-  if(y>_lastY&&y>90)h.classList.add('nav-hidden');
-  else if(y<_lastY)h.classList.remove('nav-hidden');
-  _lastY=y;
+  const max=Math.max(0,document.documentElement.scrollHeight-window.innerHeight);
+  let y=window.scrollY||document.documentElement.scrollTop||0;
+  y=Math.min(Math.max(y,0),max);            // clamp out the bounce values
+  const dy=y-_lastY;
+  if(Math.abs(dy)>6){                        // ignore tiny jitters
+    if(y<=80||document.querySelector('.tnitem.open')){
+      h.classList.remove('nav-hidden');      // always show near top or while a menu is open
+    }else if(dy>0){
+      h.classList.add('nav-hidden');
+    }else{
+      h.classList.remove('nav-hidden');
+    }
+    _lastY=y;
+  }
+  _ticking=false;
+}
+window.addEventListener('scroll',()=>{
+  if(!_ticking){_ticking=true;requestAnimationFrame(onScrollHeader);}
 },{passive:true});
 
 // ============================================================
